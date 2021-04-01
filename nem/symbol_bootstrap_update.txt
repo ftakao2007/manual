@@ -9,15 +9,6 @@ $ npm install symbol-bootstrap
 $ ./node_modules/.bin/symbol-bootstrap -v
 symbol-bootstrap/1.0.3 linux-x64 node-v14.16.0
 
-
-### https-portalの停止
-$ cd ~/https-portal
-$ docker-compose down
-Stopping https-portal ... done
-Removing https-portal ... done
-Network docker_default is external, skipping
-
-
 ==========================
 ### 作業ディレクトリに移動
 $ cd ~/symbol_mainnet
@@ -27,11 +18,11 @@ $ cat my-preset-mainnet.yml
 
 nodes:
     -
-        friendlyName: FUKUI-harvest-MAX20
-        host: harvesting-sweet-potatoes.com
-        maxUnlockedAccounts: 20
+        friendlyName: FUKUI-harvest-MAX50
+        #host: sample.com
+        maxUnlockedAccounts: 50
+        enabelAutoHarvesting: false
         beneficiaryAddress: NBMKZIAR6TW6MJE4PCJMIYMD5CA6YZBTCB3QATA
-
 
 ### 停止
 $ symbol-bootstrap stop
@@ -62,16 +53,6 @@ $ symbol-bootstrap start -d
 ### 動作確認
 $ docker ps -a
 $ symbol-bootstrap healthCheck
-$ curl http://harvesting-sweet-potatoes.com:3000/node/info | jq
-$ curl http://harvesting-sweet-potatoes.com:3000/node/unlockedaccount | jq
-$ curl http://harvesting-sweet-potatoes.com:3000/node/peers | jq
-
-### https-portalの起動
-$ cd ~/https-portal
-$ docker-compose up -d
-
-### エラーだった場合ログの確認
-### $ docker-compose logs -f https-portal
-
-### httpsアクセス確認
-https://harvesting-sweet-potatoes.com:3001/node/info
+$ curl http://212.24.109.227:3000/node/info | jq
+$ curl http://212.24.109.227:3000/node/unlockedaccount | jq
+$ curl http://212.24.109.227:3000/node/peers | jq
