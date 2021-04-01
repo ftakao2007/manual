@@ -1,0 +1,77 @@
+### バージョンと日付の指定
+bootstrap="1.0.3"
+day=`date +'%Y%m%d'`
+
+### bootstrapのダウンロード
+$ mkdir src/symbol-bootstrap${bootstrap}
+$ cd src/symbol-bootstrap${bootstrap}
+$ npm install symbol-bootstrap
+$ ./node_modules/.bin/symbol-bootstrap -v
+symbol-bootstrap/1.0.3 linux-x64 node-v14.16.0
+
+
+### https-portalの停止
+$ cd ~/https-portal
+$ docker-compose down
+Stopping https-portal ... done
+Removing https-portal ... done
+Network docker_default is external, skipping
+
+
+==========================
+### 作業ディレクトリに移動
+$ cd ~/symbol_mainnet
+
+### my-preset-mainnet.ymlの確認
+$ cat my-preset-mainnet.yml
+
+nodes:
+    -
+        friendlyName: FUKUI-harvest-MAX20
+        host: harvesting-sweet-potatoes.com
+        maxUnlockedAccounts: 20
+        beneficiaryAddress: NBMKZIAR6TW6MJE4PCJMIYMD5CA6YZBTCB3QATA
+
+
+### 停止
+$ symbol-bootstrap stop
+
+### targetディレクトリバックアップ
+$ cp -ipr target target_${day}
+
+### symbol-bootstrapのsymlink設置
+$ cd ~/bin
+$ ls -lh /home/ftakao2007/src/symbol-bootstrap${bootstrap}/node_modules/.bin/symbol-bootstrap
+$ mv symbol-bootstrap ~/tmp/symbol-bootstrap${bootstrap}
+$ ln -s /home/ftakao2007/src/symbol-bootstrap${bootstrap}/node_modules/.bin/symbol-bootstrap
+
+### 変更後のバージョン確認
+$ symbol-bootstrap -v
+symbol-bootstrap/1.0.3 linux-x64 node-v14.16.0
+
+### 作業ディレクトリに移動
+$ cd ~/symbol_mainnet
+
+### update実行
+$ symbol-bootstrap config -p mainnet -a dual -c my-preset-mainnet.yml --upgrade
+$ symbol-bootstrap compose --upgrade
+
+### 起動
+$ symbol-bootstrap start -d
+
+### 動作確認
+$ docker ps -a
+$ symbol-bootstrap healthCheck
+$ curl http://harvesting-sweet-potatoes.com:3000/node/info | jq
+$ curl http://harvesting-sweet-potatoes.com:3000/node/unlockedaccount | jq
+$ curl http://harvesting-sweet-potatoes.com:3000/node/peers | jq
+
+### https-portalの起動
+$ cd ~/https-portal
+$ docker-compose up -d
+
+### エラーだった場合ログの確認
+### $ docker-compose logs -f https-portal
+
+### httpsアクセス確認
+https://harvesting-sweet-potatoes.com:3001/node/info
