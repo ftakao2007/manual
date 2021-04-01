@@ -9,15 +9,6 @@ $ npm install symbol-bootstrap
 $ ./node_modules/.bin/symbol-bootstrap -v
 symbol-bootstrap/1.0.3 linux-x64 node-v14.16.0
 
-
-### https-portalの停止
-$ cd ~/https-portal
-$ docker-compose down
-Stopping https-portal ... done
-Removing https-portal ... done
-Network docker_default is external, skipping
-
-
 ==========================
 ### 作業ディレクトリに移動
 $ cd ~/symbol_mainnet
