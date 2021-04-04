@@ -1,0 +1,615 @@
+#################################
+### Symbolノード構築(TESTNET) ###
+#################################
+
+■ 概要
+
+SymbolのTESTNETノード構築手順です。bootstrapの起動に関する基本的な設定は完了していることが前提です。
+address.ymlのアカウントはデフォルトを利用し、アナウンスメントするアカウントはaddress.ymlのmainアカウントです。
+
+■ 事前準備
+
+* wgetがインストールされている
+* docker、docker-composeがインストールされている
+* bootstrapが実行できる
+* symbol-cliが実行できる
+
+### データのダウンロード
+### TESTNETは100GB近くのデータを同期するため普通にやると2,3日同期に時間がかかる
+### 別途データをダウンロード(数時間程度)してそれを設置すれば同期が速い
+$ cd ~
+$ wget https://symbol-archives.s3-ap-northeast-1.amazonaws.com/archives/databases.tar.gz
+$ wget https://symbol-archives.s3-ap-northeast-1.amazonaws.com/archives/data.tar.gz
+
+■ 環境
+
+* Symbolノード構築の要件を満たしている事
+https://docs.symbolplatform.com/ja/guides/network/running-a-symbol-node.html#hardware-requirements
+
+■ 作業内容
+
+### ディレクトリの作成と移動
+$ cd ~
+$ mkdir symbol_testnet
+$ cd symbol_testnet
+
+### my-preset.ymlの設置
+### hostはドメイン設定ができている場合に設定。デフォルトはサーバのIPアドレス
+### maxUnlockedAccountsはハーベストできる人数の上限
+### beneficiaryAddressはハーベスト報酬を受け取るアカウントのアドレス
+$ vi my-preset-testnet.yml
+================================================
+nodes:
+    -
+        friendlyName: FUKUI-testnet-harvest-MAX50
+        #host: sample.com
+        maxUnlockedAccounts: 50
+        beneficiaryAddress: TBHQGWBYM2CIIS7KMVDLNXXVQKH3YAYPJXR36TA
+================================================
+
+### symbol-bootstrap configの実行
+$ symbol-bootstrap config -p testnet -a dual -c my-preset-testnet.yml
+================================================
+                         _             _         _                    _         _
+  ___  _   _  _ __ ___  | |__    ___  | |       | |__    ___    ___  | |_  ___ | |_  _ __  __ _  _ __
+ / __|| | | || '_ ` _ \ | '_ \  / _ \ | | _____ | '_ \  / _ \  / _ \ | __|/ __|| __|| '__|/ _` || '_ \
+ \__ \| |_| || | | | | || |_) || (_) || ||_____|| |_) || (_) || (_) || |_ \__ \| |_ | |  | (_| || |_) |
+ |___/ \__, ||_| |_| |_||_.__/  \___/ |_|       |_.__/  \___/  \___/  \__||___/ \__||_|   \__,_|| .__/
+       |___/                                                                                    |_|
+? Enter password to use to encrypt and decrypt custom presets, addresses.yml, and preset.yml files. When providing a password, private keys will be encrypted. Keep this password in a se
+cure place! ********  ### <- パスワードを設定
+2021-04-04T03:21:52.982Z info     Password has been provided
+2021-04-04T03:21:53.038Z info     Generating config from preset testnet
+2021-04-04T03:21:53.039Z info     Assembly preset dual
+2021-04-04T03:21:53.039Z info     Custom preset file my-preset-testnet.yml
+2021-04-04T03:21:53.068Z info     Generating Main account...
+2021-04-04T03:21:53.111Z info     Generating Transport account...
+2021-04-04T03:21:53.136Z info     Generating Remote account...
+2021-04-04T03:21:53.146Z info     Generating VRF account...
+2021-04-04T03:21:53.187Z info     User for docker resolved: 1000:1000
+2021-04-04T03:21:53.188Z info     Running image using Exec: symbolplatform/symbol-server:tools-gcc-0.10.1.8 bash createNodeCertificates.sh
+2021-04-04T03:22:48.646Z info     Certificate for node api-node created
+2021-04-04T03:22:48.651Z info     Generating api-node server configuration
+2021-04-04T03:22:48.787Z info     Generating api-broker broker configuration
+2021-04-04T03:22:48.864Z info     Non-voting node api-node.
+2021-04-04T03:22:48.878Z info     Deleting folder target/nemesis/seed
+2021-04-04T03:22:49.294Z info     Configuration generated.
+================================================
+
+### symbol-bootstrap composeの実行
+$ symbol-bootstrap compose
+================================================
+                         _             _         _                    _         _
+  ___  _   _  _ __ ___  | |__    ___  | |       | |__    ___    ___  | |_  ___ | |_  _ __  __ _  _ __
+ / __|| | | || '_ ` _ \ | '_ \  / _ \ | | _____ | '_ \  / _ \  / _ \ | __|/ __|| __|| '__|/ _` || '_ \
+ \__ \| |_| || | | | | || |_) || (_) || ||_____|| |_) || (_) || (_) || |_ \__ \| |_ | |  | (_| || |_) |
+ |___/ \__, ||_| |_| |_||_.__/  \___/ |_|       |_.__/  \___/  \___/  \__||___/ \__||_|   \__,_|| .__/
+       |___/                                                                                    |_|
+? Enter password to use to encrypt and decrypt custom presets, addresses.yml, and preset.yml files. When providing a password, private keys will be encrypted. Keep this password in a se
+cure place! ********  ### <- 先ほどのパスワードを入力
+2021-04-04T03:25:37.651Z info     Password has been provided
+2021-04-04T03:25:37.714Z info     User for docker resolved: 1000:1000
+2021-04-04T03:25:37.715Z info     Creating docker-compose.yml from last used profile.
+2021-04-04T03:25:37.726Z info     The docker-compose.yml file created /home/ec2-user/symbol_testnet/target/docker/docker-compose.yml
+================================================
+
+### アナウンスメントするアカウントをsymbol-cli設定する
+
+### 事前準備でダウンロードしたデータの設置(databases.tar.gz)
+### そこそこ時間かかります
+$ cd target
+$ tar zxvf ~/databases.tar.gz
+================================================
+databases/
+databases/db/
+databases/db/index-59--319288467008279305.wt
+...
+databases/db/index-66--319288467008279305.wt
+databases/db/storage.bson
+databases/db/collection-69--319288467008279305.wt
+================================================
+
+$ rm -i ~/databases.tar.gz
+================================================
+rm: remove regular file '/home/ec2-user/databases.tar.gz'? y
+================================================
+
+### 事前準備でダウンロードしたデータの設置(data.tar.gz)
+### かなり時間かかります
+### バージョンアップするとメインネットにあわせてPATHが変わるかもです
+$ cd nodes/api-node
+$ rmdir data
+$ tar zxvf ~/data.tar.gz
+================================================
+data/
+data/index.dat
+data/statedb/
+data/statedb/MosaicCach
+...
+data/state/BlockStatisticCache.dat
+data/state/NamespaceCache_summary.dat
+data/state/supplemental.dat
+================================================
+
+$ rm -i ~/data.tar.gz
+================================================
+rm: remove regular file '/home/ec2-user/data.tar.gz'? y
+================================================
+
+
+### 暗号化されているaddress.ymlの情報をdecryptして確認する
+$ cd ~/symbol_testnet
+$ symbol-bootstrap decrypt --source target/addresses.yml --destination add.yml
+================================================
+? Enter the password to use to decrypt the source file into the destination file. Keep this password in a secure place! *********
+2021-04-04T06:39:08.736Z info     Decrypted file add.yml has been created! Any private keys on this file are now in plain text. Remember to remove the file!
+================================================
+
+### main, transport, remote, vrfのprivateKey, publicKey, addressをメモしておく
+### 作業が終わったらメモは消す
+### ！！privateKeyは他人には「絶対に」見せない！！
+$ cat add.yml
+================================================
+version: 2
+networkType: 152
+nemesisGenerationHashSeed: 45FBCF2F0EA36EFA7923C9BC923D6503169651F7FA4EFC46A8EAF5AE09057EBD
+sinkAddress: TDGY4DD2U4YQQGERFMDQYHPYS6M7LHIF6XUCJ4Q
+nodes:
+    -
+        name: api-node
+        friendlyName: FUKUI-testnet-harvest-MAX50
+        roles: 'Peer,Api'
+        main:           
+            privateKey: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+            publicKey: 68641FB644954A5AD08F03B17CD028CCA01558DC610E3EF7ABE0ABF63E4236E8
+            address: TDIFOJ4FFN7F3OF6IRM5IMQ7WCTTFD7BDXDY7FQ
+        transport:      
+            privateKey: BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
+            publicKey: E7A946062A7D6C441BB979857A406A7D44D606EF05D25EFF6F9DAF37FF980E9B
+            address: TAYIPUXPXGB6PX5NRUIPMCCAQKR7P6ZGCLP5OYA
+        remote:         
+            privateKey: CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC
+            publicKey: 23539CFF9230D3745C9FFAF716BD4D3DBB1CB024FE8F507F0433B660D3214754
+            address: TBVLCBDS2NCC3WSWENAY3TFPGF5GYO2SKRXHDMA
+        vrf:            
+            privateKey: DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD
+            publicKey: 03E9650964CD40776CD3906FD83DC3459C6CFFC107A47CE256AC53ACAF952E74
+            address: TBGDBTBDEDUMBY52I4DY2NMIDUNJMFO7S6E64JI
+================================================
+$ rm add.yml
+
+### mainアカウントをsymbol-cliのデフォルトアカウントになるように設定
+$ symbol-cli profile import
+================================================
+? Select the network type: ? TEST_NET
+? Enter the Symbol node URL. (Example: http://localhost:3000): … http://localhost:3000
+? Enter a profile name: … main <- 好きな名前で
+? Enter your wallet password: … ********* 
+? Do you want to set the account as the default profile? … yes
+? Select an import type: ? PrivateKey
+? Enter your account private key: … **************************************************************** <- mainの秘密鍵
+
+Account
+lqqqqqqqqqqqqqqqwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqk
+x Property      x Value                                                                x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Address       x TDIFOJ-4FFN7F-3OF6IR-M5IMQ7-WCTTFD-7BDXDY-7FQ                        x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Public Key    x 68641FB644954A5AD08F03B17CD028CCA01558DC610E3EF7ABE0ABF63E4236E8     x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Private Key   x AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA     x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Password      x (入力したパスワード)                                                 x
+mqqqqqqqqqqqqqqqvqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqj
+
+SUCCESS Stored main profile
+================================================
+
+### 蛇口からmainのアドレスに送金
+### http://faucet.testnet.symboldev.network/?recipient=(さっき表示したAddress)
+http://faucet.testnet.symboldev.network/?recipient=TDIFOJ-4FFN7F-3OF6IR-M5IMQ7-WCTTFD-7BDXDY-7FQ
+(10XYMほど送金する)
+
+
+### 起動
+$ symbol-bootstrap start -d
+================================================
+                         _             _         _                    _         _
+  ___  _   _  _ __ ___  | |__    ___  | |       | |__    ___    ___  | |_  ___ | |_  _ __  __ _  _ __
+ / __|| | | || '_ ` _ \ | '_ \  / _ \ | | _____ | '_ \  / _ \  / _ \ | __|/ __|| __|| '__|/ _` || '_ \
+ \__ \| |_| || | | | | || |_) || (_) || ||_____|| |_) || (_) || (_) || |_ \__ \| |_ | |  | (_| || |_) |
+ |___/ \__, ||_| |_| |_||_.__/  \___/ |_|       |_.__/  \___/  \___/  \__||___/ \__||_|   \__,_|| .__/
+       |___/                                                                                    |_|
+? Enter password to use to encrypt and decrypt custom presets, addresses.yml, an
+d preset.yml files. When providing a password, private keys will be encrypted. K
+eep this password in a secure place! *********
+2021-04-04T11:23:01.545Z info     Password has been provided
+2021-04-04T11:23:01.549Z info     The generated preset target/preset.yml already exist, ignoring configuration. (run -r to reset or --upgrade to upgrade)
+2021-04-04T11:23:01.827Z info     /home/ec2-user/symbol_testnet/target/docker/docker-compose.yml already exist. Reusing. (run --upgrade to drop and upgrade)
+2021-04-04T11:23:01.851Z info     Spawn command: docker-compose -f target/docker/docker-compose.yml up --remove-orphans --detach
+Creating network "docker_default" with the default driver
+Pulling db (mongo:4.4.3-bionic)...
+4.4.3-bionic: Pulling from library/mongo
+Digest: sha256:0290400e988ee9856ad321f81781827e0124d13f68cc72d6cad4807f3174946c
+Status: Downloaded newer image for mongo:4.4.3-bionic
+Pulling api-broker (symbolplatform/symbol-server:gcc-0.10.1.8)...
+gcc-0.10.1.8: Pulling from symbolplatform/symbol-server
+Digest: sha256:41c47673707ccd43b056c44e4525af9495fc95db3c7cb86695fcf714d697067d
+Status: Downloaded newer image for symbolplatform/symbol-server:gcc-0.10.1.8
+Pulling rest-gateway (symbolplatform/symbol-rest:2.3.5)...
+2.3.5: Pulling from symbolplatform/symbol-rest
+Digest: sha256:bb8dc7342ef1dc933989317cd465cb40a9d26394b8b0eaf8788cb7b410d73958
+Status: Downloaded newer image for symbolplatform/symbol-rest:2.3.5
+Creating db ...
+Creating db ... done
+Creating api-broker ...
+Creating rest-gateway ...
+Creating rest-gateway ... done
+Creating api-broker   ... done
+Creating api-node     ...
+Creating api-node     ... done
+================================================
+
+### 動作確認
+$ docker ps -a
+================================================
+CONTAINER ID   IMAGE                                       COMMAND                  CREATED          STATUS          PORTS                    NAMES
+436fa40a4ee9   symbolplatform/symbol-server:gcc-0.10.1.8   "/bin/bash /symbol-c …"   45 seconds ago   Up 43 seconds   0.0.0.0:7900->7900/tcp   api-node
+7a2fb2f2d722   symbolplatform/symbol-rest:2.3.5            "docker-entrypoint.s …"   46 seconds ago   Up 44 seconds   0.0.0.0:3000->3000/tcp   rest-gateway
+f073c9206283   symbolplatform/symbol-server:gcc-0.10.1.8   "/bin/bash /symbol-c …"   46 seconds ago   Up 44 seconds                            api-broker
+735c9ba535db   mongo:4.4.3-bionic                          "docker-entrypoint.s …"   50 seconds ago   Up 46 seconds   27017/tcp                db
+================================================
+
+$ symbol-bootstrap healthCheck
+================================================
+                         _             _         _                    _         _
+  ___  _   _  _ __ ___  | |__    ___  | |       | |__    ___    ___  | |_  ___ | |_  _ __  __ _  _ __
+ / __|| | | || '_ ` _ \ | '_ \  / _ \ | | _____ | '_ \  / _ \  / _ \ | __|/ __|| __|| '__|/ _` || '_ \
+ \__ \| |_| || | | | | || |_) || (_) || ||_____|| |_) || (_) || (_) || |_ \__ \| |_ | |  | (_| || |_) |
+ |___/ \__, ||_| |_| |_||_.__/  \___/ |_|       |_.__/  \___/  \___/  \__||___/ \__||_|   \__,_|| .__/
+       |___/                                                                                    |_|
+2021-04-04T11:30:00.726Z info     Container db is running
+2021-04-04T11:30:00.728Z info     Container api-node is running
+2021-04-04T11:30:00.734Z info     Container api-broker is running
+2021-04-04T11:30:00.734Z info     Container rest-gateway is running
+2021-04-04T11:30:00.738Z info     Container api-node port 7900 -> 7900 is open
+2021-04-04T11:30:00.738Z info     Container rest-gateway port 3000 -> 3000 is open
+2021-04-04T11:31:32.624Z info     Rest http://localhost:3000/node/health is up and running...
+2021-04-04T11:31:32.625Z info     Network is running!
+================================================
+
+$ curl http://127.0.0.1:3000/node/info | jq
+================================================
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   376  100   376    0     0   7673      0 --:--:-- --:--:-- --:--:--  7673
+{
+  "version": 655624,
+  "publicKey": "68641FB644954A5AD08F03B17CD028CCA01558DC610E3EF7ABE0ABF63E4236E8",
+  "networkGenerationHashSeed": "45FBCF2F0EA36EFA7923C9BC923D6503169651F7FA4EFC46A8EAF5AE09057EBD",
+  "roles": 3,
+  "port": 7900,
+  "networkIdentifier": 152,
+  "host": "",
+  "friendlyName": "FUKUI-testnet-harvest-MAX50",
+  "nodePublicKey": "E7A946062A7D6C441BB979857A406A7D44D606EF05D25EFF6F9DAF37FF980E9B"
+}
+================================================
+
+### ブロック高確認
+### ブロック高が最新に追いついてないとハーベストの設定ができない
+### mainアカウントにXYMが入っているかも含めて確認
+### けっこう時間がかかるかも。。
+
+### テストネットのブロック高確認
+https://symbolnodes.org/nodes_testnet/
+### 今回構築したサーバのブロック高確認
+$ symbol-cli chain height
+================================================
+247057
+================================================
+
+### アカウントのXYM数確認
+$ symbol-cli account info
+================================================
+? Processing
+Account Information
+lqqqqqqqqqqqqqqqqqqqwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqk
+x Property          x Value                                                            x
+tqqqqqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Address           x TDIFOJ-4FFN7F-3OF6IR-M5IMQ7-WCTTFD-7BDXDY-7FQ                    x
+tqqqqqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Address Height    x 247028                                                           x
+tqqqqqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Public Key        x 0000000000000000000000000000000000000000000000000000000000000000 x
+tqqqqqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Public Key Height x 0                                                                x
+tqqqqqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Importance        x 0                                                                x
+tqqqqqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Importance Height x 0                                                                x
+mqqqqqqqqqqqqqqqqqqqvqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqj
+Balance Information
+lqqqqqqqqqqqqqqqqqqwqqqqqqqqqqqqqqqqqwqqqqqqqqqqqqqqqqqwqqqqqqqqqqqqqqqqqqqk
+x Mosaic Id        x Relative Amount x Absolute Amount x Expiration Height x
+tqqqqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqu
+x 2CF403E85507F39E x 10              x 10000000        x Never             x
+mqqqqqqqqqqqqqqqqqqvqqqqqqqqqqqqqqqqqvqqqqqqqqqqqqqqqqqvqqqqqqqqqqqqqqqqqqqj
+================================================
+
+### 自身に0XYM送金
+### symbol-cli transaction transfer --recipient-address (自分のアドレス) --mosaics 2CF403E85507F39E::(枚数) --max-fee 1000000
+symbol-cli transaction transfer --recipient-address TDIFOJ4FFN7F3OF6IRM5IMQ7WCTTFD7BDXDY7FQ --mosaics 2CF403E85507F39E::0 --max-fee 1000000
+================================================
+? Enter your wallet password: … *********
+? Enter a message: …
+? Select the transaction announce mode: ? normal
+lqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqk
+x                                     TRANSFER                                     x
+tqqqqqqqqqqqqqqqwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Max fee:      x 1,000,000                                                        x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Network type: x TEST_NET                                                         x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Deadline:     x 2021-04-04 14:17:55.343                                          x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Recipient:    x TDIFOJ-4FFN7F-3OF6IR-M5IMQ7-WCTTFD-7BDXDY-7FQ                    x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Message:      x N/A                                                              x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Mosaic (1/1): x 0 2CF403E85507F39E                                               x
+tqqqqqqqqqqqqqqqvqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x                                Signature details                                 x
+tqqqqqqqqqqqqqqqwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Payload:      x B000000000000000189582DF40533682A60E3C0B993047CE1E997AB22AB77D7B x
+x               x F7B246467E7C0A32253394DA7EEDE56CA19AEC38307E10C7270365230989E7D4 x
+x               x 46A6421BF69CB80F68641FB644954A5AD08F03B17CD028CCA01558DC610E3EF7 x
+x               x ABE0ABF63E4236E8000000000198544140420F00000000008FBB7C450A000000 x
+x               x 98D05727852B7E5DB8BE4459D4321FB0A7328FE11DC78F960000010000000000 x
+x               x 9EF30755E803F42C0000000000000000                                 x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Hash:         x 67500062AA5BB19CC7F77873D9C143B9A3C7DC6374EE8FC0849227582E8D6F06 x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Signer:       x 68641FB644954A5AD08F03B17CD028CCA01558DC610E3EF7ABE0ABF63E4236E8 x
+mqqqqqqqqqqqqqqqvqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqj
+? Do you want to announce this transaction? … yes
+
+SUCCESS Transaction announced correctly
+
+TIP To check if the network confirms or rejects the transaction, run the command 'symbol-cli transaction status'
+================================================
+
+### 送金確認
+### Relative Amountが手数料分減少
+$ symbol-cli account info
+================================================
+? Processing
+Account Information
+lqqqqqqqqqqqqqqqqqqqwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqk
+x Property          x Value                                                            x
+tqqqqqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Address           x TDIFOJ-4FFN7F-3OF6IR-M5IMQ7-WCTTFD-7BDXDY-7FQ                    x
+tqqqqqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Address Height    x 247028                                                           x
+tqqqqqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Public Key        x 68641FB644954A5AD08F03B17CD028CCA01558DC610E3EF7ABE0ABF63E4236E8 x
+tqqqqqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Public Key Height x 247084                                                           x
+tqqqqqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Importance        x 0                                                                x
+tqqqqqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Importance Height x 0                                                                x
+mqqqqqqqqqqqqqqqqqqqvqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqj
+Balance Information
+lqqqqqqqqqqqqqqqqqqwqqqqqqqqqqqqqqqqqwqqqqqqqqqqqqqqqqqwqqqqqqqqqqqqqqqqqqqk
+x Mosaic Id        x Relative Amount x Absolute Amount x Expiration Height x
+tqqqqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqu
+x 2CF403E85507F39E x 9               x 9000144         x Never             x
+mqqqqqqqqqqqqqqqqqqvqqqqqqqqqqqqqqqqqvqqqqqqqqqqqqqqqqqvqqqqqqqqqqqqqqqqqqqj
+================================================
+
+######################
+### ハーベスト設定 ###
+######################
+### 「publicKey」と「privateKey」が間違いやすいので注意
+
+
+### accountkeylinkを投げる
+### 「remote」の「publicKey」を入れる
+$ symbol-cli transaction accountkeylink
+================================================
+? Enter your wallet password: … *********
+? Enter the public key of the remote account:  … 23539CFF9230D3745C9FFAF716BD4D3DBB1CB024FE8F507F0433B660D3214754
+? Select an action: ? Link
+? Enter the maximum fee (absolute amount): … 1000000 <- 適当。大きめに入れる
+? Select the transaction announce mode: ? normal
+lqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqk
+x                                 ACCOUNT_KEY_LINK                                 x
+tqqqqqqqqqqqqqqqwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Max fee:      x 1,000,000                                                        x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Network type: x TEST_NET                                                         x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Deadline:     x 2021-04-04 14:26:27.497                                          x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Action:       x Link                                                             x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Linked key:   x 23539CFF9230D3745C9FFAF716BD4D3DBB1CB024FE8F507F0433B660D3214754 x
+tqqqqqqqqqqqqqqqvqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x                                Signature details                                 x
+tqqqqqqqqqqqqqqqwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Payload:      x A1000000000000009998C8E60C73B4974271DE0CDC05562328BEE2C7E9E3DBFE x
+x               x 747129E8F8063330CD0006E1C782D474B334E0EEEBD26832A0AFF1B21FA44D06 x
+x               x 3887CB2251AFF60C68641FB644954A5AD08F03B17CD028CCA01558DC610E3EF7 x
+x               x ABE0ABF63E4236E80000000001984C4140420F0000000000298C84450A000000 x
+x               x 23539CFF9230D3745C9FFAF716BD4D3DBB1CB024FE8F507F0433B660D3214754 x
+x               x 01                                                               x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Hash:         x B85DAF45BA1B6EAD72C820A06C4A10F00253DFD1B3D90675ABF72C5C9C27E500 x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Signer:       x 68641FB644954A5AD08F03B17CD028CCA01558DC610E3EF7ABE0ABF63E4236E8 x
+mqqqqqqqqqqqqqqqvqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqj
+? Do you want to announce this transaction? … yes
+
+SUCCESS Transaction announced correctly
+
+TIP To check if the network confirms or rejects the transaction, run the command 'symbol-cli transaction status'
+================================================
+
+
+### vrfkeylink を投げる
+### 「vrf」の「publicKey」を入れる
+$ symbol-cli transaction vrfkeylink
+================================================
+? Enter your wallet password: … *********
+? Enter the public key to link:  … 03E9650964CD40776CD3906FD83DC3459C6CFFC107A47CE256AC53ACAF952E74
+? Select an action: ? Link
+? Enter the maximum fee (absolute amount): … 1000000
+? Select the transaction announce mode: ? normal
+lqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqk
+x                                   VRF_KEY_LINK                                   x
+tqqqqqqqqqqqqqqqwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Max fee:      x 1,000,000                                                        x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Network type: x TEST_NET                                                         x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Deadline:     x 2021-04-04 14:32:02.525                                          x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Action:       x Link                                                             x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Linked key:   x 03E9650964CD40776CD3906FD83DC3459C6CFFC107A47CE256AC53ACAF952E74 x
+tqqqqqqqqqqqqqqqvqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x                                Signature details                                 x
+tqqqqqqqqqqqqqqqwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Payload:      x A10000000000000075AD51A6A4AB280116469A3AEBCFECEF1AB75B6F0374D01A x
+x               x C0DBE5EAE9C181453A89AB39A7C63B055B56A9B33FEC1606760463BEE9A2516F x
+x               x 7AE26AFC756B550A68641FB644954A5AD08F03B17CD028CCA01558DC610E3EF7 x
+x               x ABE0ABF63E4236E8000000000198434240420F0000000000DDA889450A000000 x
+x               x 03E9650964CD40776CD3906FD83DC3459C6CFFC107A47CE256AC53ACAF952E74 x
+x               x 01                                                               x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Hash:         x BC9FD750573D19692AE0A356BB8AC871B14F2FB2335FBBA98F3FFCFDAC885EDE x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Signer:       x 68641FB644954A5AD08F03B17CD028CCA01558DC610E3EF7ABE0ABF63E4236E8 x
+mqqqqqqqqqqqqqqqvqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqj
+? Do you want to announce this transaction? … yes
+
+SUCCESS Transaction announced correctly
+
+TIP To check if the network confirms or rejects the transaction, run the command 'symbol-cli transaction status'
+================================================
+
+### nodekeylink を投げる
+### 「transport」の「publicKey」を入れる
+$ symbol-cli transaction nodekeylink
+================================================
+? Enter your wallet password: … *********
+? Enter the public key to link:  … E7A946062A7D6C441BB979857A406A7D44D606EF05D25EFF6F9DAF37FF980E9B
+? Select an action: ? Link
+? Enter the maximum fee (absolute amount): … 1000000
+? Select the transaction announce mode: ? normal
+lqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqk
+x                                  NODE_KEY_LINK                                   x
+tqqqqqqqqqqqqqqqwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Max fee:      x 1,000,000                                                        x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Network type: x TEST_NET                                                         x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Deadline:     x 2021-04-04 14:36:22.962                                          x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Action:       x Link                                                             x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Linked key:   x E7A946062A7D6C441BB979857A406A7D44D606EF05D25EFF6F9DAF37FF980E9B x
+tqqqqqqqqqqqqqqqvqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x                                Signature details                                 x
+tqqqqqqqqqqqqqqqwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Payload:      x A10000000000000043B5B7A3969D4271DBC84887F4D2B53E9AFAE8602D7EA575 x
+x               x 951CBC7EA4A8818B41CCE8C8604AC70F6555A790930A74AB4446E2BC217DA933 x
+x               x 0B2CCA452CE2DB0568641FB644954A5AD08F03B17CD028CCA01558DC610E3EF7 x
+x               x ABE0ABF63E4236E80000000001984C4240420F000000000032A28D450A000000 x
+x               x E7A946062A7D6C441BB979857A406A7D44D606EF05D25EFF6F9DAF37FF980E9B x
+x               x 01                                                               x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Hash:         x 0D2841834DB6F185B6A0AEFCC82CBF95B4989ACA2BC06835A32E9E2CA823BCA1 x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Signer:       x 68641FB644954A5AD08F03B17CD028CCA01558DC610E3EF7ABE0ABF63E4236E8 x
+mqqqqqqqqqqqqqqqvqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqj
+? Do you want to announce this transaction? … yes
+
+SUCCESS Transaction announced correctly
+
+TIP To check if the network confirms or rejects the transaction, run the command 'symbol-cli transaction status'
+================================================
+
+
+### persistentharvestdelegation を投げる
+### 「remote」の「privateKey」を入れる
+### 「transport」の「publicKey」を入れる
+### 「vrf」の「privateKey」を入れる
+$ symbol-cli transaction persistentharvestdelegation
+================================================
+? Enter your wallet password: … *********
+? Enter the remote account private key: … ****************************************************************
+? Enter the public key of the node: … E7A946062A7D6C441BB979857A406A7D44D606EF05D25EFF6F9DAF37FF980E9B
+? Enter the VRF private key linked to the main account: … ****************************************************************
+? Enter the maximum fee (absolute amount): … 1000000
+? Select the transaction announce mode: ? normal
+lqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqk
+x                                                                                                                                         TRANSFER                                                                                                                                         x
+tqqqqqqqqqqqqqqqwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Max fee:      x 1,000,000                                                                                                                                                                                                                                                                x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Network type: x TEST_NET                                                                                                                                                                                                                                                                 x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Deadline:     x 2021-04-04 14:40:05.997                                                                                                                                                                                                                                                  x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Recipient:    x TAYIPU-XPXGB6-PX5NRU-IPMCCA-QKR7P6-ZGCLP5-OYA                                                                                                                                                                                                                            x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Message:      x FE2A8061577301E2AAC15E6B8EB8BF3EC5B132072DA4BA14BE7F331F4C0CEA428EB48BF4AE954EBAD6217A80BD89197F7542FA4F7B1196CCE154BDD834131A6C22EC5DCCE4B001A929B16843DB3F6DAB3204ABC5816BB484FAA1293CF150F559DD2F0B6C76DE4FA3B316ACD0915D7FA3F9DFC91F5BA4087C0A5EDE9799EA52B12F984A21 x
+tqqqqqqqqqqqqqqqvqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x                                                                                                                                    Signature details                                                                                                                                     x
+tqqqqqqqqqqqqqqqwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Payload:      x 24010000000000008F918816E28AAB9D4984849043A06AD68FD2FEDFA4E162D4                                                                                                                                                                                                         x
+x               x 7C816EEF6C09EAF2BADFC172DABEE5AD7AEB5E5E92259C71DA977F639D556BE5                                                                                                                                                                                                         x
+x               x D75267EE1A99CE0868641FB644954A5AD08F03B17CD028CCA01558DC610E3EF7                                                                                                                                                                                                         x
+x               x ABE0ABF63E4236E8000000000198544140420F00000000006D0991450A000000                                                                                                                                                                                                         x
+x               x 983087D2EFB983E7DFAD8D10F6084082A3F7FB2612DFD7608400000000000000                                                                                                                                                                                                         x
+x               x FE2A8061577301E2AAC15E6B8EB8BF3EC5B132072DA4BA14BE7F331F4C0CEA42                                                                                                                                                                                                         x
+x               x 8EB48BF4AE954EBAD6217A80BD89197F7542FA4F7B1196CCE154BDD834131A6C                                                                                                                                                                                                         x
+x               x 22EC5DCCE4B001A929B16843DB3F6DAB3204ABC5816BB484FAA1293CF150F559                                                                                                                                                                                                         x
+x               x DD2F0B6C76DE4FA3B316ACD0915D7FA3F9DFC91F5BA4087C0A5EDE9799EA52B1                                                                                                                                                                                                         x
+x               x 2F984A21                                                                                                                                                                                                                                                                 x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Hash:         x 5DBC87BD8C39D23C0D707E0984801A4420F10CAAC965D7AE61D90ACE4CCEFCB4                                                                                                                                                                                                         x
+tqqqqqqqqqqqqqqqnqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqu
+x Signer:       x 68641FB644954A5AD08F03B17CD028CCA01558DC610E3EF7ABE0ABF63E4236E8                                                                                                                                                                                                         x
+mqqqqqqqqqqqqqqqvqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqj
+? Do you want to announce this transaction? … yes
+
+SUCCESS Transaction announced correctly
+
+TIP To check if the network confirms or rejects the transaction, run the command 'symbol-cli transaction status'
+================================================
+
+### ウォレットからハーベストが有効になる事を確認する
+
+############
+### 終了 ###
+############
+
+
+### 参考資料
+* さくらのVPSでNEM Symbol のテストネットノード構築
+  https://qiita.com/curupo/items/12357755b9ac0a23ae22
+
+* symbol-bootstrap(暫定fast-sync)
+  https://qiita.com/ryosasa/items/7313fc7d86c30e9c5d8f
+
+* Symbolのデリゲーテッドハーベスティングのトランザクションレベルでのやり取りなどをざっくり説明してみる
+  https://qiita.com/GodTanu2/items/60ed86c3552051265a2b
+
+* Symbolのハーベスティング周りの情報を整理する
+  https://qiita.com/GodTanu2/items/2426b748bcf1ec13443e
+
+* tanuson slack
+  https://tanuson.slack.com/archives/C01DT1Z7M4H/p1614213124012800
