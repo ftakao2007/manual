@@ -66,3 +66,27 @@ $ docker-compose up -d
 
 ### httpsアクセス確認
 https://harvesting-sweet-potatoes.com:3001/node/info
+
+
+############
+### 終了 ###
+############
+
+================================================
+
+##################
+### 問題発生時 ###
+##################
+
+### UnhandledPromiseRejectionWarningが出た時
+### https://tanuson.slack.com/archives/C01PV32NNQG/p1617441885494400
+
+### bootstrapの停止
+$ symbol-bootstrap stop
+
+### ロックファイルの確認
+$ ls target/nodes/node/data/*.lock
+### ロックファイルがあれば削除
+
+### bootstrapの起動
+$ symbol-bootstrap run -d
