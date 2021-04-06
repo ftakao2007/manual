@@ -1,0 +1,140 @@
+##############################
+### ドメインによる接続設定 ###
+##############################
+
+■ 概要
+
+リトアニアのSymbolノードにharvesting-sweet-potatoes.clubで接続できるように
+my-preset-mainnet.ymlを変更して反映する。またhttps-portalでhttps接続できるようにする
+
+■ 事前準備
+
+harvesting-sweet-potatoes.clubと212.24.109.227をマッチングさせておく
+
+■ 作業内容
+################
+### 作業開始 ###
+################
+
+### 日付の設定
+day=`date +'%Y%m%d'`
+
+### symbol_mainnetディレクトリに移動
+$ cd symbol_mainnet
+
+### my-preset-mainnet.ymlの編集
+$ vi my-preset-mainnet.yml
+==========================
+### before
+nodes:
+    -
+        friendlyName: FUKUI-harvest-MAX50
+        #host: sample.com
+        maxUnlockedAccounts: 50
+        enabelAutoHarvesting: false
+        beneficiaryAddress: NBMKZIAR6TW6MJE4PCJMIYMD5CA6YZBTCB3QATA
+
+### after
+nodes:
+    -
+        friendlyName: FUKUI-harvest-MAX50
+        host: harvesting-sweet-potatoes.club
+        maxUnlockedAccounts: 50
+        beneficiaryAddress: NBMKZIAR6TW6MJE4PCJMIYMD5CA6YZBTCB3QATA
+==========================
+
+### 停止
+$ symbol-bootstrap stop
+
+### targetディレクトリバックアップ
+$ cp -ipr target target_${day}
+
+### update実行
+$ symbol-bootstrap config -p mainnet -a dual -c my-preset-mainnet.yml --upgrade
+$ symbol-bootstrap compose --upgrade
+
+### 起動
+$ symbol-bootstrap start -d
+
+### 動作確認
+$ docker ps -a
+$ symbol-bootstrap healthCheck
+$ curl http://harvesting-sweet-potatoes.club:3000/node/info | jq
+$ curl http://harvesting-sweet-potatoes.club:3000/node/unlockedaccount | jq
+$ curl http://harvesting-sweet-potatoes.club:3000/node/peers | jq
+
+### https-portal用のディレクトリ作成と移動
+$ cd ~
+$ mkdir https-portal
+$ cd https-portal
+
+### docker-compose.ymlの作成
+$ vi docker-compose.yml
+==========================
+version: '3'
+services:
+    https-portal:
+        container_name: https-portal
+        image: 'steveltn/https-portal:1'
+        ports:
+            - '80:80'
+            - '3001:443'
+        restart: 'on-failure:2'
+        environment:
+            DOMAINS: 'harvesting-sweet-potatoes.club -> http://rest-gateway:3000'
+            STAGE: 'production'
+            #LISTEN_IPV6: 'true'  #IPv6対応
+            WEBSOCKET: 'true' #Websocket対応
+        volumes:
+            - 'https-portal-data:/var/lib/https-portal'
+# HTTPS-PORTALアップデート時に再サインするのを避ける
+volumes:
+    https-portal-data:
+# bootstrapのdocker containerへ接続可能にする
+networks:
+    default:
+        external:
+            name: docker_default
+==========================
+
+### https-portalの起動
+$ docker-compose up -d
+
+### エラーだった場合ログの確認
+### $ docker-compose logs -f https-portal
+
+### httpsアクセス確認
+https://harvesting-sweet-potatoes.club:3001/node/info
+
+
+############
+### 終了 ###
+############
+
+================================================
+
+##################
+### 問題発生時 ###
+##################
+
+### UnhandledPromiseRejectionWarningが出た時
+### https://tanuson.slack.com/archives/C01PV32NNQG/p1617441885494400
+
+### bootstrapの停止
+$ cd ~/symbol_mainnet
+$ symbol-bootstrap stop
+
+### ロックファイルの確認
+$ ls target/nodes/node/data/*.lock
+### ロックファイルがあれば削除
+
+### bootstrapの起動
+$ symbol-bootstrap run -d
+
+
+############
+### 参考 ###
+############
+
+* Symbol メインネット HTTPS対応 https-portal
+  https://nemlog.nem.social/blog/58808
