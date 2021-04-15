@@ -7,6 +7,15 @@ symbol-bootstrapをアップデートする手順です。
 
 =========================================================
 ■ 事前準備
+### ディレクトリの存在確認
+### 無ければ適宜作成
+$ ls -d ~/bak ~/src ~/bin ~/https-portal ~/symbol_mainnet
+==========================
+/home/ftakao2007/bak           /home/ftakao2007/src
+/home/ftakao2007/bin           /home/ftakao2007/symbol_mainnet
+/home/ftakao2007/https-portal
+==========================
+
 ### 残容量の確認
 $ df -h /home
 ==========================
@@ -72,7 +81,8 @@ nodes:
 $ symbol-bootstrap stop
 
 ### targetディレクトリバックアップ
-$ cp -ipr target target_${day}
+$ ls -lhd ~/bak
+$ cp -ipr target ~/bak/target_${day}
 
 ### symbol-bootstrapのsymlink設置
 $ cd ~/bin
