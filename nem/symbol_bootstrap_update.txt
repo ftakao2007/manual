@@ -24,14 +24,14 @@ Filesystem      Size  Used Avail Use% Mounted on
 ==========================
 
 ### bootstrapのダウンロード
-bootstrap="1.0.4"
+bootstrap="1.0.5"
 $ cd ~
 $ mkdir src/symbol-bootstrap${bootstrap}
 $ cd src/symbol-bootstrap${bootstrap}
 $ npm install symbol-bootstrap
 $ ./node_modules/.bin/symbol-bootstrap -v
 ==========================
-symbol-bootstrap/1.0.4 linux-x64 node-v14.16.1
+symbol-bootstrap/1.0.5 linux-x64 node-v14.16.1
 ==========================
 
 ### symbol-bootstrap verify確認
@@ -54,13 +54,14 @@ $ symbol-bootstrap verify
 =========================================================
 ■ 作業内容
 ### パラメータ設定
-$ bootstrap="1.0.4"
+$ bootstrap="1.0.5"
 $ day=`date +'%Y%m%d'`
-$ node_url="harvesting-sweet-potatoes.club"
+$ node_url="harvesting-sweet-potatoes.com"
 
 ### https-portalの停止
 $ cd ~/https-portal
 $ docker-compose stop
+$ docker-compose down
 
 ### 作業ディレクトリに移動
 $ cd ~/symbol_mainnet
@@ -93,7 +94,7 @@ $ ln -s /home/ftakao2007/src/symbol-bootstrap${bootstrap}/node_modules/.bin/symb
 ### 変更後のバージョン確認
 $ symbol-bootstrap -v
 ==========================
-symbol-bootstrap/1.0.4 linux-x64 node-v14.16.1
+symbol-bootstrap/1.0.5 linux-x64 node-v14.16.1
 ==========================
 
 ### 作業ディレクトリに移動
