@@ -19,8 +19,8 @@ $ ls -d ~/bak ~/src ~/bin ~/https-portal ~/symbol_mainnet
 ### 残容量の確認
 $ df -h /home
 ==========================
-Filesystem      Size  Used Avail Use% Mounted on
-/dev/sda1       158G   32G  118G  22% /
+Filesystem               Size  Used Avail Use% Mounted on
+/dev/mapper/centos-root  795G   36G  759G   5% /
 ==========================
 
 ### bootstrapのダウンロード
@@ -72,9 +72,9 @@ $ cat my-preset-mainnet.yml
 ==========================
 nodes:
     -
-        friendlyName: FUKUI-harvest-MAX50
-        host: harvesting-sweet-potatoes.club
-        maxUnlockedAccounts: 50
+        friendlyName: FUKUI-harvest-MAX20
+        host: harvesting-sweet-potatoes.com
+        maxUnlockedAccounts: 20
         beneficiaryAddress: NBMKZIAR6TW6MJE4PCJMIYMD5CA6YZBTCB3QATA
 ==========================
 
