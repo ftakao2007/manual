@@ -51,6 +51,12 @@ $ symbol-bootstrap verify
 2021-06-10T02:12:25.923Z info     Sudo User Test - OK! - Your are not the sudo user!
 ==========================
 
+### 事前同期
+network="mainnet"
+home="/home/ftakao2007"
+rsync -avh --delete ${home}/symbol_${network} ${home}/bak
+
+
 ### 削除対象のdocker imageの確認
 $ docker image ls
 ==========================
@@ -261,7 +267,7 @@ read flag
 
 if [ ! "$flag" == "y" ]; then echo "end"; exit 1; fi
 
-rsync -avh --include=harvesters.dat --exclude-from=${home}/bin/ignore.lst ${home}/symbol_${network} ${home}/bak/exclude_data
+rsync -avh --exclude-from=${home}/bin/ignore.lst ${home}/symbol_${network} ${home}/bak/exclude_data
 rsync -avh --delete ${home}/symbol_${network} ${home}/bak
 cp -pr ${home}/symbol_${network}/target/nodes/node/data/harvesters.dat ${home}/bak/exclude_data
 cp -ipr ${home}/symbol_${network}/target/nodes/node/data/harvesters.dat ${home}/bak/harvesters.dat_${day}
@@ -271,7 +277,7 @@ diff -rq ${home}/symbol_${network} ${home}/bak/symbol_${network}
 date
 ==========================
 
-$ cat ~/bin/rsync.sh
+$ cat ~/bin/ignore.lst
 ==========================
 target/databases
 target/nodes/node/data
