@@ -19,19 +19,19 @@ $ ls -d ~/bak ~/bak/exclude_data ~/src ~/bin ~/https-portal ~/symbol_mainnet
 ### 残容量の確認
 $ df -h /home
 ==========================
-ファイルシス            サイズ  使用  残り 使用% マウント位置
-/dev/mapper/centos-root   795G   55G  740G    7% /
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1       158G   55G   96G  37% /
 ==========================
 
 ### bootstrapのダウンロード
-bootstrap="1.0.6"
+bootstrap="1.0.7"
 $ cd ~
 $ mkdir src/symbol-bootstrap${bootstrap}
 $ cd src/symbol-bootstrap${bootstrap}
 $ npm install symbol-bootstrap
 $ ./node_modules/.bin/symbol-bootstrap -v
 ==========================
-symbol-bootstrap/1.0.6 linux-x64 node-v14.16.0
+symbol-bootstrap/1.0.7 linux-x64 node-v14.17.0
 ==========================
 
 ### symbol-bootstrap verify確認
@@ -43,12 +43,12 @@ $ symbol-bootstrap verify
  \__ \| |_| || | | | | || |_) || (_) || ||_____|| |_) || (_) || (_) || |_ \__ \| |_ | |  | (_| || |_) |
  |___/ \__, ||_| |_| |_||_.__/  \___/ |_|       |_.__/  \___/  \___/  \__||___/ \__||_|   \__,_|| .__/
        |___/                                                                                    |_|
-2021-06-10T02:12:25.921Z info     OS: Linux - 3.10.0-1160.15.2.el7.x86_64 - linux
-2021-06-10T02:12:25.922Z info     NodeVersion - OK! - 14.16.0
-2021-06-10T02:12:25.922Z info     Docker Version - OK! - 20.10.5
-2021-06-10T02:12:25.923Z info     Docker Compose Version - OK! - 1.28.5
-2021-06-10T02:12:25.923Z info     Docker Run Test - OK! - Command 'docker run hello-world' executed!
-2021-06-10T02:12:25.923Z info     Sudo User Test - OK! - Your are not the sudo user!
+2021-06-23T20:33:51.977Z info     OS: Linux - 4.18.0-240.22.1.el8_3.x86_64 - linux
+2021-06-23T20:33:51.978Z info     NodeVersion - OK! - 14.17.0
+2021-06-23T20:33:51.978Z info     Docker Version - OK! - 20.10.6
+2021-06-23T20:33:51.979Z info     Docker Compose Version - OK! - 1.28.5
+2021-06-23T20:33:51.979Z info     Docker Run Test - OK! - Command 'docker run hello-world' executed!
+2021-06-23T20:33:51.979Z info     Sudo User Test - OK! - Your are not the sudo user!
 ==========================
 
 ### 事前同期
@@ -61,16 +61,14 @@ rsync -avh --delete ${home}/symbol_${network} ${home}/bak
 $ docker image ls
 ==========================
 REPOSITORY                     TAG                  IMAGE ID       CREATED        SIZE
-* symbolplatform/symbol-rest     2.3.5                68ff5c3b59c7   2 months ago   848MB
-symbolplatform/symbol-server   tools-gcc-1.0.0.0    361f9b7149de   2 months ago   581MB
-* symbolplatform/symbol-server   gcc-1.0.0.0          e91e5c13fd79   2 months ago   944MB
-hello-world                    latest               d1165f221234   3 months ago   13.3kB
+symbolplatform/symbol-server   gcc-10-1.0.1.0       abd889a725da   4 weeks ago    1.4GB
+symbolplatform/symbol-rest     2.3.6                de561585001a   4 weeks ago    879MB
+symbolplatform/symbol-server   tools-gcc-1.0.0.0    361f9b7149de   3 months ago   581MB
+* hello-world                    latest               d1165f221234   3 months ago   13.3kB
 symbolplatform/symbol-server   tools-gcc-0.10.1.8   3d4cc1b223b1   3 months ago   580MB
 symbolplatform/symbol-server   gcc-0.10.1.8         a3e2c69bc8b8   3 months ago   944MB
-symbolplatform/symbol-server   tools-gcc-0.10.0.8   bb54c5456c30   3 months ago   581MB
-symbolplatform/symbol-rest     2.3.4                cfe3bd1ee2e1   3 months ago   848MB
 steveltn/https-portal          1                    04260208a055   3 months ago   274MB
-mongo                          4.4.3-bionic         ca8e14b1fda6   4 months ago   493MB
+mongo                          4.4.3-bionic         ca8e14b1fda6   5 months ago   493MB
 ==========================
 
 =========================================================
@@ -79,9 +77,9 @@ mongo                          4.4.3-bionic         ca8e14b1fda6   4 months ago 
 $ screen
 
 ### パラメータ設定
-$ bootstrap="1.0.6"
+$ bootstrap="1.0.7"
 $ day=`date +'%Y%m%d'`
-$ node_url="harvesting-sweet-potatoes.com"
+$ node_url="harvesting-sweet-potatoes.club"
 
 ### https-portalの停止
 $ cd ~/https-portal
@@ -97,9 +95,9 @@ $ cat my-preset-mainnet.yml
 ==========================
 nodes:
     -
-        friendlyName: FUKUI-harvest-MAX20
-        host: harvesting-sweet-potatoes.com
-        maxUnlockedAccounts: 20
+        friendlyName: FUKUI-harvest-MAX50
+        host: harvesting-sweet-potatoes.club
+        maxUnlockedAccounts: 50
         beneficiaryAddress: NBMKZIAR6TW6MJE4PCJMIYMD5CA6YZBTCB3QATA
 ==========================
 
@@ -118,7 +116,7 @@ $ ln -s /home/ftakao2007/src/symbol-bootstrap${bootstrap}/node_modules/.bin/symb
 ### 変更後のバージョン確認
 $ symbol-bootstrap -v
 ==========================
-symbol-bootstrap/1.0.6 linux-x64 node-v14.16.0
+symbol-bootstrap/1.0.7 linux-x64 node-v14.17.0
 ==========================
 
 ### 作業ディレクトリに移動
@@ -160,12 +158,12 @@ $ symbol-bootstrap verify
  \__ \| |_| || | | | | || |_) || (_) || ||_____|| |_) || (_) || (_) || |_ \__ \| |_ | |  | (_| || |_) |
  |___/ \__, ||_| |_| |_||_.__/  \___/ |_|       |_.__/  \___/  \___/  \__||___/ \__||_|   \__,_|| .__/
        |___/                                                                                    |_|
-2021-06-09T20:43:41.148Z info     OS: Linux - 4.18.0-240.22.1.el8_3.x86_64 - linux
-2021-06-09T20:43:41.150Z info     NodeVersion - OK! - 14.17.0
-2021-06-09T20:43:41.150Z info     Docker Version - OK! - 20.10.6
-2021-06-09T20:43:41.150Z info     Docker Compose Version - OK! - 1.28.5
-2021-06-09T20:43:41.151Z info     Docker Run Test - OK! - Command 'docker run hello-world' executed!
-2021-06-09T20:43:41.151Z info     Sudo User Test - OK! - Your are not the sudo user!
+2021-06-23T20:52:38.362Z info     OS: Linux - 4.18.0-240.22.1.el8_3.x86_64 - linux
+2021-06-23T20:52:38.363Z info     NodeVersion - OK! - 14.17.0
+2021-06-23T20:52:38.364Z info     Docker Version - OK! - 20.10.6
+2021-06-23T20:52:38.364Z info     Docker Compose Version - OK! - 1.28.5
+2021-06-23T20:52:38.364Z info     Docker Run Test - OK! - Command 'docker run hello-world' executed!
+2021-06-23T20:52:38.364Z info     Sudo User Test - OK! - Your are not the sudo user!
 ==========================
 $ curl http://${node_url}:3000/node/info | jq
 $ curl http://${node_url}:3000/node/unlockedaccount | jq
@@ -181,22 +179,22 @@ $ docker-compose up -d
 ### httpsアクセス確認
 $ curl https://${node_url}:3001/node/info | jq
 
-### 不要なdocker imageの確認
-$ docker image ls
-==========================
-REPOSITORY                     TAG                  IMAGE ID       CREATED        SIZE
-symbolplatform/symbol-rest     2.3.5                68ff5c3b59c7   2 months ago   848MB
-symbolplatform/symbol-server   tools-gcc-1.0.0.0    361f9b7149de   2 months ago   581MB
-symbolplatform/symbol-server   gcc-1.0.0.0          e91e5c13fd79   2 months ago   944MB
-hello-world                    latest               d1165f221234   3 months ago   13.3kB
-symbolplatform/symbol-server   tools-gcc-0.10.1.8   3d4cc1b223b1   3 months ago   580MB
-symbolplatform/symbol-server   gcc-0.10.1.8         a3e2c69bc8b8   3 months ago   944MB
-steveltn/https-portal          1                    04260208a055   3 months ago   274MB
-mongo                          4.4.3-bionic         ca8e14b1fda6   4 months ago   493MB
-==========================
-
-### 不要なdocker imageの削除
-$ docker image rm 68ff5c3b59c7 e91e5c13fd79
+### ### 不要なdocker imageの確認
+### $ docker image ls
+### ==========================
+### REPOSITORY                     TAG                  IMAGE ID       CREATED        SIZE
+### symbolplatform/symbol-rest     2.3.5                68ff5c3b59c7   2 months ago   848MB
+### symbolplatform/symbol-server   tools-gcc-1.0.0.0    361f9b7149de   2 months ago   581MB
+### symbolplatform/symbol-server   gcc-1.0.0.0          e91e5c13fd79   2 months ago   944MB
+### hello-world                    latest               d1165f221234   3 months ago   13.3kB
+### symbolplatform/symbol-server   tools-gcc-0.10.1.8   3d4cc1b223b1   3 months ago   580MB
+### symbolplatform/symbol-server   gcc-0.10.1.8         a3e2c69bc8b8   3 months ago   944MB
+### steveltn/https-portal          1                    04260208a055   3 months ago   274MB
+### mongo                          4.4.3-bionic         ca8e14b1fda6   4 months ago   493MB
+### ==========================
+### 
+### ### 不要なdocker imageの削除
+### $ docker image rm 68ff5c3b59c7 e91e5c13fd79
 
 
 ############
@@ -272,9 +270,9 @@ rsync -avh --delete ${home}/symbol_${network} ${home}/bak
 cp -pr ${home}/symbol_${network}/target/nodes/node/data/harvesters.dat ${home}/bak/exclude_data
 cp -ipr ${home}/symbol_${network}/target/nodes/node/data/harvesters.dat ${home}/bak/harvesters.dat_${day}
 
-date
-diff -rq ${home}/symbol_${network} ${home}/bak/symbol_${network}
-date
+#date
+#diff -rq ${home}/symbol_${network} ${home}/bak/symbol_${network}
+#date
 ==========================
 
 $ cat ~/bin/ignore.lst
