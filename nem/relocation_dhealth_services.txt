@@ -1,0 +1,169 @@
+##############################
+### dhealthサービスの移設  ###
+##############################
+
+■ 概要
+digital oceanで運用しているdhealthのサービスをt4vpsに移設します。
+移設元(digital ocean) : 165.22.244.94  (dhealth.harvesting-sweet-potatoes.club)
+移設先(t4vps)         : 176.223.137.82
+
+0 事前準備
+  0-1. 移設元のdhealthディレクトリでDB以外のデータを圧縮して移設先に転送
+         * data,databasesディレクトリの中身を除いたもの。harvesters.datは残す。
+  0-2. 移設先で展開してmy-preset-mainnet.ymlに移設先のIPを設定の後起動してDB同期
+         * 起動前にconfigとcomposeで--upgradeしておく
+  0-3. 移設先で同期が最新に追いついたら停止してmy-preset-mainnet.ymlにドメインを設定
+         * configとcomposeで--upgradeしておく
+  0-4. 移設先でhttps-portalの設定
+
+1 作業内容
+  1-1. 移設先でdhealthサービスを起動
+  1-2. 移設先で同期が最新に追いついたら移設元から移設先にDNSを切り替える
+         * dhealth.harvesting-sweet-potatoes.club (165.22.244.94 -> 176.223.137.82)
+  1-3. 移設先でステータス確認
+         * 委任が外れていないか、ウォレットが有効になっているか等
+  1-4. 移設先でhttps-portalの起動
+  1-5. 移設元のサービスを停止
+
+
+=========================================================
+■ 0 事前準備
+
+### 0-1. 移設元のdhealthディレクトリでDB以外のデータを圧縮して移設先に転送
+
+[centos@165.22.244.94 ~]
+$ ~/bin/rsync_dhealth.sh
+$ tar zcvf exclude_data.tar.gz bak/exclude_data
+$ scp exclude_data.tar.gz ftakao2007@176.223.137.82:
+
+### 0-2. 移設先で展開してmy-preset-mainnet.ymlに移設先のIPを設定の後起動してDB同期
+
+[ftakao2007@176.223.137.82 ~]
+$ tar zxvf exclude_data.tar.gz
+$ mv bak/exclude_data/symbol_dhealth ~
+$ cd symbol_dhealth
+$ vi my-preset-dhealth.yml
+==========================
+nodes:
+    -
+        friendlyName:  FUKUI-dHealth
+        #host: dhealth.harvesting-sweet-potatoes.club
+        host: 176.223.137.82
+        maxUnlockedAccounts: 50
+        beneficiaryAddress: NBMUNLKLI3OY2QCJY3FMTIXVCOU2NEDUPNEOGHA
+==========================
+
+$ yourdlt config -p dhealth -a dual -c my-preset-dhealth.yml --upgrade
+$ compose --upgrade
+$ yourdlt run -d
+$ yourdlt healthCheck
+$ curl -s http://127.0.0.1:3000/chain/info | jq '.height'
+==========================
+"277565"
+==========================
+
+$ curl -s http://dual-01.dhealth.jp:3000/chain/info | jq '.height'
+==========================
+"277565"
+==========================
+
+$ yourdlt stop 
+
+### 0-3. 移設先で同期が最新に追いついたら停止してmy-preset-mainnet.ymlにドメインを設定
+
+[ftakao2007@176.223.137.82 ~/symbol_dhealth]
+$ vi my-preset-dhealth.yml
+==========================
+nodes:
+    -
+        friendlyName:  FUKUI-dHealth
+        host: dhealth.harvesting-sweet-potatoes.club
+        #host: 176.223.137.82
+        maxUnlockedAccounts: 50
+        beneficiaryAddress: NBMUNLKLI3OY2QCJY3FMTIXVCOU2NEDUPNEOGHA
+==========================
+
+### 0-4. https-portalの設定
+
+[ftakao2007@176.223.137.82 ~/symbol_dhealth]
+$ cd ~
+$ mkdir https-portal
+$ cd https-portal
+$ vi docker-compose.yml
+==========================
+version: '3'
+services:
+    https-portal:
+        container_name: https-portal
+        image: 'steveltn/https-portal:1'
+        ports:
+            - '80:80'
+            - '3001:443'
+        restart: 'on-failure:2'
+        environment:
+            DOMAINS: 'dhealth.harvesting-sweet-potatoes.club -> http://rest-gateway:3000'
+            STAGE: 'production'
+            #LISTEN_IPV6: 'true'  #IPv6対応
+            WEBSOCKET: 'true' #Websocket対応
+        volumes:
+            - 'https-portal-data:/var/lib/https-portal'
+# HTTPS-PORTALアップデート時に再サインするのを避ける
+volumes:
+    https-portal-data:
+# bootstrapのdocker containerへ接続可能にする
+networks:
+    default:
+        external:
+            name: docker_default
+==========================
+
+
+
+=========================================================
+■ 作業内容
+### 1-1. 移設先でdhealthサービスを起動
+
+[ftakao2007@176.223.137.82 ~/https-portal]
+$ cd ~/symbol_dhealth
+$ yourdlt config -p dhealth -a dual -c my-preset-dhealth.yml --upgrade
+$ yourdlt compose --upgrade
+$ yourdlt run -d
+$ yourdlt healthCheck
+
+
+### 1-2. 移設先で同期が最新に追いついたら移設元から移設先にDNSを切り替える
+
+[vagrant@localPC ~]
+$ ~/bin/ddns_dhealth.sh
+
+### 1-3. 移設先でステータス確認
+
+[ftakao2007@176.223.137.82 ~/symbol_dhealth]
+$ yourdlt healthCheck
+$ curl http://127.0.0.1:3000/node/info | jq
+$ curl http://127.0.0.1:3000/node/unlockedaccount | jq
+$ curl http://127.0.0.1:3000/node/peers | jq
+$ curl http://127.0.0.1:3000/node/server | jq
+
+
+### 1-4. https-portalの起動
+
+[ftakao2007@176.223.137.82 ~/symbol_dhealth]
+$ cd ~/https-portal
+$ docker-compose up -d
+$ curl https://127.0.0.1:3001/node/info | jq
+
+
+### 1-5. 移設元のサービスを停止
+
+[centos@165.22.244.94 ~]
+$ cd https-portal
+$ docker-compose stop
+$ docker-compose down
+$ cd ~/symbol_dhealth
+$ yourdlt stop
+
+
+############
+### 終了 ###
+############
