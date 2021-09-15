@@ -1,3 +1,4 @@
+※ 1.0.9がすぐ出たので非実施
 ####################################
 ### symbol-bootstrapアップデート ###
 ####################################
@@ -19,12 +20,12 @@ $ ls -d ~/bak ~/bak/exclude_data ~/src ~/bin ~/https-portal ~/symbol_mainnet
 ### 残容量の確認
 $ df -h /home
 ==========================
-Filesystem               Size  Used Avail Use% Mounted on
-/dev/mapper/centos-root  795G   76G  720G  10% /
+ファイルシス            サイズ  使用  残り 使用% マウント位置
+/dev/mapper/centos-root   795G   81G  714G   11% /
 ==========================
 
 ### bootstrapのダウンロード
-bootstrap="1.0.7"
+bootstrap="1.0.8"
 $ cd ~
 $ mkdir src/symbol-bootstrap${bootstrap}
 $ cd src/symbol-bootstrap${bootstrap}
@@ -77,7 +78,7 @@ rsync -avh --delete ${home}/symbol_${network} ${home}/bak
 $ screen
 
 ### パラメータ設定
-$ bootstrap="1.0.7"
+$ bootstrap="1.0.8"
 $ day=`date +'%Y%m%d'`
 $ node_url="harvesting-sweet-potatoes.com"
 
@@ -99,6 +100,8 @@ nodes:
         host: harvesting-sweet-potatoes.com
         maxUnlockedAccounts: 20
         beneficiaryAddress: NBMKZIAR6TW6MJE4PCJMIYMD5CA6YZBTCB3QATA
+        minFeeMultiplier: 40
+        transactionSelectionStrategy: oldest
 ==========================
 
 ### 停止
