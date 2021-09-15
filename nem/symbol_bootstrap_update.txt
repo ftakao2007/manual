@@ -20,18 +20,18 @@ $ ls -d ~/bak ~/bak/exclude_data ~/src ~/bin ~/https-portal ~/symbol_mainnet
 $ df -h /home
 ==========================
 Filesystem      Size  Used Avail Use% Mounted on
-/dev/sda1       158G   55G   96G  37% /
+/dev/sda1       158G   71G   79G  48% /
 ==========================
 
 ### bootstrapのダウンロード
-bootstrap="1.0.7"
+$ bootstrap="1.0.8"
 $ cd ~
 $ mkdir src/symbol-bootstrap${bootstrap}
 $ cd src/symbol-bootstrap${bootstrap}
 $ npm install symbol-bootstrap
 $ ./node_modules/.bin/symbol-bootstrap -v
 ==========================
-symbol-bootstrap/1.0.7 linux-x64 node-v14.17.0
+symbol-bootstrap/1.0.8 linux-x64 node-v14.17.0
 ==========================
 
 ### symbol-bootstrap verify確認
@@ -43,19 +43,18 @@ $ symbol-bootstrap verify
  \__ \| |_| || | | | | || |_) || (_) || ||_____|| |_) || (_) || (_) || |_ \__ \| |_ | |  | (_| || |_) |
  |___/ \__, ||_| |_| |_||_.__/  \___/ |_|       |_.__/  \___/  \___/  \__||___/ \__||_|   \__,_|| .__/
        |___/                                                                                    |_|
-2021-06-23T20:33:51.977Z info     OS: Linux - 4.18.0-240.22.1.el8_3.x86_64 - linux
-2021-06-23T20:33:51.978Z info     NodeVersion - OK! - 14.17.0
-2021-06-23T20:33:51.978Z info     Docker Version - OK! - 20.10.6
-2021-06-23T20:33:51.979Z info     Docker Compose Version - OK! - 1.28.5
-2021-06-23T20:33:51.979Z info     Docker Run Test - OK! - Command 'docker run hello-world' executed!
-2021-06-23T20:33:51.979Z info     Sudo User Test - OK! - Your are not the sudo user!
+2021-09-15T05:58:51.122Z info     OS: Linux - 4.18.0-240.22.1.el8_3.x86_64 - linux
+2021-09-15T05:58:51.124Z info     NodeVersion - OK! - 14.17.0
+2021-09-15T05:58:51.125Z info     Docker Version - OK! - 20.10.6
+2021-09-15T05:58:51.125Z info     Docker Compose Version - OK! - 1.28.5
+2021-09-15T05:58:51.125Z info     Docker Run Test - OK! - Command 'docker run hello-world' executed!
+2021-09-15T05:58:51.125Z info     Sudo User Test - OK! - Your are not the sudo user!
 ==========================
 
 ### 事前同期
 network="mainnet"
 home="/home/ftakao2007"
 rsync -avh --delete ${home}/symbol_${network} ${home}/bak
-
 
 ### 削除対象のdocker imageの確認
 $ docker image ls
@@ -77,7 +76,7 @@ mongo                          4.4.3-bionic         ca8e14b1fda6   5 months ago 
 $ screen
 
 ### パラメータ設定
-$ bootstrap="1.0.7"
+$ bootstrap="1.0.8"
 $ day=`date +'%Y%m%d'`
 $ node_url="harvesting-sweet-potatoes.club"
 
@@ -99,6 +98,8 @@ nodes:
         host: harvesting-sweet-potatoes.club
         maxUnlockedAccounts: 50
         beneficiaryAddress: NBMKZIAR6TW6MJE4PCJMIYMD5CA6YZBTCB3QATA
+        minFeeMultiplier: 30
+        transactionSelectionStrategy: oldest
 ==========================
 
 ### 停止
@@ -116,7 +117,7 @@ $ ln -s /home/ftakao2007/src/symbol-bootstrap${bootstrap}/node_modules/.bin/symb
 ### 変更後のバージョン確認
 $ symbol-bootstrap -v
 ==========================
-symbol-bootstrap/1.0.7 linux-x64 node-v14.17.0
+symbol-bootstrap/1.0.8 linux-x64 node-v14.17.0
 ==========================
 
 ### 作業ディレクトリに移動
@@ -139,15 +140,15 @@ $ symbol-bootstrap healthCheck
  \__ \| |_| || | | | | || |_) || (_) || ||_____|| |_) || (_) || (_) || |_ \__ \| |_ | |  | (_| || |_) |
  |___/ \__, ||_| |_| |_||_.__/  \___/ |_|       |_.__/  \___/  \___/  \__||___/ \__||_|   \__,_|| .__/
        |___/                                                                                    |_|
-2021-06-09T20:43:02.777Z info     Container db is running
-2021-06-09T20:43:02.779Z info     Container node is running
-2021-06-09T20:43:02.783Z info     Container broker is running
-2021-06-09T20:43:02.783Z info     Container rest-gateway is running
-2021-06-09T20:43:02.785Z info     Container node port 7900 -> 7900 is open
-2021-06-09T20:43:02.786Z info     Container rest-gateway port 3000 -> 3000 is open
-2021-06-09T20:43:02.787Z info     Testing http://localhost:3000/node/health
-2021-06-09T20:43:02.857Z info     Rest http://localhost:3000/node/health is up and running...
-2021-06-09T20:43:02.857Z info     Network is running!
+2021-09-15T07:48:16.346Z info     Container db is running
+2021-09-15T07:48:16.348Z info     Container node is running
+2021-09-15T07:48:16.351Z info     Container broker is running
+2021-09-15T07:48:16.352Z info     Container rest-gateway is running
+2021-09-15T07:48:16.354Z info     Container node port 7900 -> 7900 is open
+2021-09-15T07:48:16.354Z info     Container rest-gateway port 3000 -> 3000 is open
+2021-09-15T07:48:16.356Z info     Testing http://localhost:3000/node/health
+2021-09-15T07:48:16.420Z info     Rest http://localhost:3000/node/health is up and running...
+2021-09-15T07:48:16.423Z info     Network is running!
 ==========================
 
 $ symbol-bootstrap verify
@@ -158,12 +159,12 @@ $ symbol-bootstrap verify
  \__ \| |_| || | | | | || |_) || (_) || ||_____|| |_) || (_) || (_) || |_ \__ \| |_ | |  | (_| || |_) |
  |___/ \__, ||_| |_| |_||_.__/  \___/ |_|       |_.__/  \___/  \___/  \__||___/ \__||_|   \__,_|| .__/
        |___/                                                                                    |_|
-2021-06-23T20:52:38.362Z info     OS: Linux - 4.18.0-240.22.1.el8_3.x86_64 - linux
-2021-06-23T20:52:38.363Z info     NodeVersion - OK! - 14.17.0
-2021-06-23T20:52:38.364Z info     Docker Version - OK! - 20.10.6
-2021-06-23T20:52:38.364Z info     Docker Compose Version - OK! - 1.28.5
-2021-06-23T20:52:38.364Z info     Docker Run Test - OK! - Command 'docker run hello-world' executed!
-2021-06-23T20:52:38.364Z info     Sudo User Test - OK! - Your are not the sudo user!
+2021-09-15T07:48:37.093Z info     OS: Linux - 4.18.0-240.22.1.el8_3.x86_64 - linux
+2021-09-15T07:48:37.095Z info     NodeVersion - OK! - 14.17.0
+2021-09-15T07:48:37.095Z info     Docker Version - OK! - 20.10.6
+2021-09-15T07:48:37.095Z info     Docker Compose Version - OK! - 1.28.5
+2021-09-15T07:48:37.095Z info     Docker Run Test - OK! - Command 'docker run hello-world' executed!
+2021-09-15T07:48:37.095Z info     Sudo User Test - OK! - Your are not the sudo user!
 ==========================
 $ curl http://${node_url}:3000/node/info | jq
 $ curl http://${node_url}:3000/node/unlockedaccount | jq
