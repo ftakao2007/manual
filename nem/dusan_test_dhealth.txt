@@ -1,0 +1,269 @@
+####################################################
+### づ～さんの手順でバックアップから復旧してみる ###
+####################################################
+
+■ 概要
+づ～さんによるとカスタムプリセットに暗号化されたprivate keyを入れて起動すれば
+復旧できたということで検証してみる。
+ついでにノードの証明書の期限も伸びてたら嬉しいな。
+
+=========================================================
+■ 事前準備
+
+### ノードの証明書の期限確認
+$ openssl x509 -text -noout -in target/nodes/dhealth-full-node/cert/node.full.crt.pem
+==========================
+Certificate:
+    Data:
+        Version: 1 (0x0)
+        Serial Number:
+            1f:5a:2c:7d:8d:02:6e:d3:19:ec:a7:bb:c3:f4:e3:df:0d:6e:5d
+        Signature Algorithm: ED25519
+        Issuer: CN = dhealth-full-node-account
+        Validity
+            Not Before: Sep 14 00:30:35 2021 GMT  
+            Not After : Sep 24 00:30:35 2022 GMT ※ これ変わってほしい
+        Subject: CN = dhealth-full-node
+        Subject Public Key Info:
+            Public Key Algorithm: ED25519
+                ED25519 Public-Key:
+                pub:
+                    54:b1:c3:76:7b:78:6c:a2:2e:8d:b1:de:6c:bb:65:
+                    6c:d9:14:18:6c:22:3b:ef:ed:27:3c:ea:b5:e2:58:
+                    6d:b5
+    Signature Algorithm: ED25519
+         cd:c3:b3:13:d8:d9:20:28:0b:81:75:9f:3e:c7:cb:45:17:c9:
+         e5:df:1f:8b:2c:ef:d9:14:94:cd:e3:06:7a:32:63:5c:71:dd:
+         d6:e1:f1:f6:7a:09:3f:fe:ca:26:a9:6d:81:29:3f:ec:9a:1b:
+         cf:43:d3:61:48:75:a7:e4:b8:04
+==========================
+
+### 委任状況
+$ curl -s http://127.0.0.1:3000/node/unlockedaccount | jq
+==========================
+{
+  "unlockedAccount": [
+    "A93C21F903DD0C8625846EA386604D6D15C1E459C6E1868B96C3C90705F93468"
+  ]
+}
+==========================
+
+=========================================================
+■ 作業内容
+
+### 変数設定
+node_url="127.0.0.1"
+
+### 新ディレクトリ作成
+$ mkdir ~/symbol_dhealth_new
+
+### 旧ディレクトリに移動
+$ cd ~/symbol_dhealth
+
+### 新ディレクトリにプリセットをコピー
+$ cp my-preset-dhealth.yml ~/symbol_dhealth_new
+
+### private keyを確認
+$ cat target/addresses.yml
+==========================
+version: 2
+networkType: 104
+nemesisGenerationHashSeed: ED5761EA890A096C50D3F50B7C2F0CCB4B84AFC9EA870F381E84DDE36D04EF16
+sinkAddress: NABGMHRJPE4HL7F2NMRVS2GYY3WWBKE2OXDCFDY
+nodes:
+    -
+        name: dhealth-full-node
+        friendlyName: FUKUI-voting-test
+        roles: 'Peer,Api'
+        main:
+            privateKey: >-
+                ENCRYPTED:(秘密鍵main)
+            publicKey: 88C575B27D866FE9C522DF0D4B91B4385A46DF105392DED78C00C4A4244ECC22
+            address: NB3J2TAMN3XJQJWFR6BGEA5O7WQCFH7BUBIXDWY
+        transport:
+            privateKey: >-
+                ENCRYPTED:(秘密鍵transport)
+            publicKey: 54B1C3767B786CA22E8DB1DE6CBB656CD914186C223BEFED273CEAB5E2586DB5
+            address: NBRJHSCYADMLDAWYWVCUEBDVF7WEH4BSIWKJDKI
+        remote:
+            privateKey: >-
+                ENCRYPTED:(秘密鍵remote)
+            publicKey: A93C21F903DD0C8625846EA386604D6D15C1E459C6E1868B96C3C90705F93468
+            address: NATSOENO3GLZXGXGRPZMOWWCB2RKKDLOOFOGHDQ
+        vrf:
+            privateKey: >-
+                ENCRYPTED:(秘密鍵vrf)
+            publicKey: C1DDC3D2344CE7C230D58F8A1AFD91FC6C4CF83034FA66CEAC89582B56DE3A08
+            address: NCNK7PXWXJPPL7IMAIT3OEOKFWGPJ2KMRALXJGI
+==========================
+
+### 新ディレクトリにharvesters.datをバックアップ
+### 検証用サーバには出来てなかった
+
+### 新ディレクトリに移動
+$ cd ~/symbol_dhealth_new
+
+### プリセットにprivateKeySecurityMode: ENCRYPTと先ほど確認した秘密鍵を追加
+$ vi my-preset-dhealth.yml
+$ cat my-preset-dhealth.yml
+==========================
+privateKeySecurityMode: ENCRYPT
+nodes:
+    -
+        friendlyName: FUKUI-voting-test
+        host: stg.harvesting-sweet-potatoes.club
+        maxUnlockedAccounts: 50
+        beneficiaryAddress: NBMUNLKLI3OY2QCJY3FMTIXVCOU2NEDUPNEOGHA
+        voting: false
+        mainPrivateKey: >-
+            ENCRYPTED:(秘密鍵main)
+        transportPrivateKey: >-
+            ENCRYPTED:(秘密鍵transport)
+        remotePrivateKey: >-
+            ENCRYPTED:(秘密鍵remote)
+        vrfPrivateKey: >-
+            ENCRYPTED:(秘密鍵vrf)
+==========================
+
+### 旧サービスを停止
+$ cd ~/symbol_dhealth
+$ yourdlt stop
+
+### 新サービスを起動
+$ cd ~/symbol_dhealth_new
+$ yourdlt config -p dhealth -a dual -c my-preset-dhealth.yml
+$ yourdlt compose
+$ cp -ipr ~/symbol_dhealth/target/databases target
+$ cp -ipr ~/symbol_dhealth/target/nodes/dhealth-full-node/data/* target/nodes/dhealth-full-node/data
+$ yourdlt run -d
+
+### 動作確認
+$ docker ps -a
+$ curl http://${node_url}:3000/node/info | jq
+$ curl http://${node_url}:3000/node/unlockedaccount | jq
+==========================
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100    88  100    88    0     0   1600      0 --:--:-- --:--:-- --:--:--  1600
+{
+  "unlockedAccount": [
+    "A93C21F903DD0C8625846EA386604D6D15C1E459C6E1868B96C3C90705F93468"
+  ]
+}
+==========================
+
+$ curl http://${node_url}:3000/node/peers | jq
+$ curl http://${node_url}:3000/node/server | jq
+$ openssl x509 -text -noout -in target/nodes/dhealth-full-node/cert/node.full.crt.pem
+==========================
+Certificate:
+    Data:
+        Version: 1 (0x0)
+        Serial Number:
+            b5:7a:82:b9:91:71:dd:b0:c5:50:e4:27:b4:da:e1:17:4e:e9:06
+        Signature Algorithm: ED25519
+        Issuer: CN = dhealth-full-node-account
+        Validity
+            Not Before: Sep 18 11:21:24 2021 GMT
+            Not After : Sep 28 11:21:24 2022 GMT ※ 変わった
+        Subject: CN = dhealth-full-node
+        Subject Public Key Info:
+            Public Key Algorithm: ED25519
+                ED25519 Public-Key:
+                pub:
+                    54:b1:c3:76:7b:78:6c:a2:2e:8d:b1:de:6c:bb:65:
+                    6c:d9:14:18:6c:22:3b:ef:ed:27:3c:ea:b5:e2:58:
+                    6d:b5
+    Signature Algorithm: ED25519
+         8d:ac:1b:e1:e4:21:83:96:12:0a:2a:31:e8:c3:b3:2f:58:e9:
+         51:ea:ac:e1:68:74:b3:2e:2a:75:52:79:2e:6a:b3:93:5a:fa:
+         84:a7:02:e8:ee:4e:ea:6c:24:8a:5f:11:46:54:1e:4e:9f:9f:
+         7f:74:b4:92:62:de:97:8d:1c:02
+==========================
+
+############
+### 終了 ###
+############
+
+
+=========================================================
+##################
+### 神の御言葉 ###
+##################
+
+https://tanuson.slack.com/archives/C01PV32NNQG/p1631793178322800?thread_ts=1631790151.313800&cid=C01PV32NNQG
+
+target の再構築前に
+①ｶｽﾀﾑﾌﾟﾘｾｯﾄ.yml
+②target/addresses.yml とそれを作った時のﾊﾟｽﾜｰﾄﾞ(それか その内容を復号したもの)
+③target/nodes/node/data/	 (今は再同期で復元するけど念の為)
+④domain を使っていたらそれも何使ってたか憶えとき host に設定したﾔﾂ
+上記④つが　家財道具だ
+これさえ保存していれば何処で建て直しても復活出来る
+============================================
+
+
+しかるべき場所に
+main/transport/remote/vrf の秘密鍵を記述すれば
+同じ node が再生される
+
+
+============================================
+
+まぁだいたいは
+bootstrap を 1.0.8 以降に update した後に
+① stop
+② resetData
+③ config -p mainnet -a dual -c ｶｽﾀﾑﾌﾟﾘｾｯﾄ.yml --upgrade
+④ compose --upgrade
+⑤ run
+
+これで1日寝て待ちゃあ同期出来っし
+委任者も元通りだ
+
+
+privateKeySecurityMode: ENCRYPT
+nodes:
+    -
+        host: abcd
+        friendlyName: abcd
+        maxUnlockedAccounts: abcd
+        #transactionSelectionStrategy: oldest
+        #minFeeMultiplier: 10
+        beneficiaryAddress: abcd
+        mainPrivateKey: abcd
+        transportPrivateKey: abcd
+        remotePrivateKey: abcd
+        #votingPrivateKey:
+        vrfPrivateKey: abcd
+
+
+============================================
+
+
+
+target/addreses.yml を decrypt して秘密鍵を復号せんでも
+こっちを使えば　暗号化されたのをそのままｺﾋﾟﾍﾟで行ける
+今確認した
+
+privateKeySecurityMode: ENCRYPT
+nodes:
+    -
+        host: abcd
+        friendlyName: abcd
+        maxUnlockedAccounts: abcd
+        #transactionSelectionStrategy: oldest
+        #minFeeMultiplier: 10
+        beneficiaryAddress: abcd
+?
+        #votingPrivateKey:
+?
+        mainPrivateKey: >-
+            ENCRYPTED:abcd
+        vrfPrivateKey: >-
+            ENCRYPTED:abcd
+        remotePrivateKey: >-
+            ENCRYPTED:abcd
+        transportPrivateKey: >-
+            ENCRYPTED:abcd
+
