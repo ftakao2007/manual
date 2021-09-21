@@ -1,0 +1,313 @@
+####################################################
+### づ～さんの手順でバックアップから復旧してみる ###
+####################################################
+
+■ 概要
+づ～さんによるとカスタムプリセットに暗号化されたprivate keyを入れて起動すれば
+復旧できたということで検証してみる。
+ついでにノードの証明書の期限も伸びてたら嬉しいな。
+
+=========================================================
+■ 事前準備
+
+### versionの確認
+$ curl -s http://127.0.0.1:3000/node/server | jq
+==========================
+{
+  "serverInfo": {
+    "restVersion": "2.3.6",
+    "sdkVersion": "2.3.6",
+    "deployment": {
+      "deploymentTool": "symbol-bootstrap",
+      "deploymentToolVersion": "1.0.9",
+      "lastUpdatedDate": "2021-09-18"
+    }
+  }
+}
+==========================
+
+
+### ノードの証明書の期限確認
+$ openssl x509 -text -noout -in target/nodes/node/cert/node.full.crt.pem
+==========================
+Certificate:
+    Data:
+        Version: 1 (0x0)
+        Serial Number:
+            4f:d6:1b:0c:99:ac:cc:b3:7a:79:14:68:45:e4:b2:db:2a:e0:78
+        Signature Algorithm: ED25519
+        Issuer: CN = node-account
+        Validity
+            Not Before: Sep 18 13:27:14 2021 GMT
+            Not After : Sep 28 13:27:14 2022 GMT
+        Subject: CN = node
+        Subject Public Key Info:
+            Public Key Algorithm: ED25519
+                ED25519 Public-Key:
+                pub:
+                    8c:6e:67:77:ce:13:90:ea:29:1a:e9:96:d5:32:06:
+                    cb:7e:95:06:5e:5f:e3:ea:fd:e8:c6:a0:32:f7:6c:
+                    61:52
+    Signature Algorithm: ED25519
+         57:56:9b:fd:a4:50:60:bd:e9:1c:ff:3e:7e:36:35:32:dd:67:
+         24:50:84:c9:29:18:04:2e:72:c9:e3:c6:d1:81:a2:2c:76:1a:
+         9d:91:58:f4:ae:76:7b:5c:b9:b7:e2:4b:46:9a:8e:3c:67:40:
+         c1:e3:0e:d4:c2:d7:00:48:b7:0f
+==========================
+
+### 委任状況
+$ curl -s http://127.0.0.1:3000/node/unlockedaccount | jq
+==========================
+{
+  "unlockedAccount": [
+    "FFA520585D3232C5A174A9E00F6F0DEFFFF1767F8E698DF7AF73712F39B8DABE",
+    "08171A4CF037B07CA6BD6872FD6FEA76FB75BB03D4E7C0F467CF6F0025B17542",
+    "7A230E73887462102682F7B30AF703D0344C9D1E091E61E428A15178278A8502",
+    "6966F52CF676C1FE585EDBF404189138C274B066944D08E103327E5401C22E9D",
+    "785F68BDA2494858E6880DF5580DA1C819763F6FAC84F84B5DC4A26377390B4E",
+    "1F7D92E2B5046C27EE3A4E2F8BD1C697FE8C1078CDA91E9E981CC5EC166C61B2"
+  ]
+}
+==========================
+
+=========================================================
+■ 作業内容
+
+### 変数設定
+node_url="127.0.0.1"
+
+### 新ディレクトリ作成
+$ mkdir ~/symbol_testnet_new
+
+### 旧ディレクトリに移動
+$ cd ~/symbol_testnet
+
+### 新ディレクトリにプリセットをコピー
+$ cp my-preset-testnet.yml ~/symbol_testnet_new
+
+### private keyを確認
+$ cat target/addresses.yml
+==========================
+version: 2
+networkType: 152
+nemesisGenerationHashSeed: 3B5E1FA6445653C971A50687E75E6D09FB30481055E3990C84B25E9222DC1155
+sinkAddress: TBMC4TRHMTM27MRZRICXV3XA4BW2VCF4OQKF25A
+nodes:
+    -
+        name: node
+        friendlyName: FUKUI-dusan-test
+        roles: 'Peer,Api'
+        main:
+            privateKey: >-
+                ENCRYPTED:(秘密鍵main)
+            publicKey: 46AEE74D997C0E5F68FD9B0C8265EA88A6731BF72D638B4212DA39E1DCD799E4
+            address: TDR27F4UWVRJKCHWRNHJULHOB72H5RBEJVUAOIA
+        transport:
+            privateKey: >-
+                ENCRYPTED:(秘密鍵transport)
+            publicKey: 8C6E6777CE1390EA291AE996D53206CB7E95065E5FE3EAFDE8C6A032F76C6152
+            address: TB2BPCD53CRBSGMPAXL3GJQQCNB6LQW75EUSJHY
+        remote:
+            privateKey: >-
+                ENCRYPTED:(秘密鍵remote)
+            publicKey: FFA520585D3232C5A174A9E00F6F0DEFFFF1767F8E698DF7AF73712F39B8DABE
+            address: TB27LWGHKN5BKNSF3MDYUD5WZIGE6UVE44DRAZA
+        vrf:
+            privateKey: >-
+                ENCRYPTED:(秘密鍵vrf)
+            publicKey: DE6500F84B67BAC933A68EF9B9A981553E22E2A80E9855ACB9B468445F1ED662
+            address: TCNCDJUOSZIOBYMJW7VYJQPQNOYE2SVWXK5CKEQ
+==========================
+
+### 新ディレクトリにharvesters.datをバックアップ
+$ cp target/nodes/node/data/harvesters.dat ~/symbol_testnet_new
+
+### 新ディレクトリに移動
+$ cd ~/symbol_testnet_new
+
+### プリセットにprivateKeySecurityMode: ENCRYPTと先ほど確認した秘密鍵を追加
+### 新たなパスワードは設定できない。移設前に使っていたパスワードを覚えておく必要がある。
+$ vi my-preset-testnet.yml
+$ cat my-preset-testnet.yml
+==========================
+privateKeySecurityMode: ENCRYPT
+nodes:
+    -
+        friendlyName: FUKUI-dusan-test
+        host: stg.harvesting-sweet-potatoes.club
+        maxUnlockedAccounts: 50
+        beneficiaryAddress: TBHQGWBYM2CIIS7KMVDLNXXVQKH3YAYPJXR36TA
+        mainPrivateKey: >-
+            ENCRYPTED:(秘密鍵main)
+        transportPrivateKey: >-
+            ENCRYPTED:(秘密鍵transport)
+        remotePrivateKey: >-
+            ENCRYPTED:(秘密鍵remote)
+        vrfPrivateKey: >-
+            ENCRYPTED:(秘密鍵vrf)
+==========================
+
+### 生秘密鍵の場合
+### この場合symbol-bootstrap configで新たなパスワードを設定することができる
+==========================
+privateKeySecurityMode: ENCRYPT
+nodes:
+    -
+        friendlyName: FUKUI-dusan-test
+        host: stg.harvesting-sweet-potatoes.club
+        maxUnlockedAccounts: 50
+        beneficiaryAddress: TBHQGWBYM2CIIS7KMVDLNXXVQKH3YAYPJXR36TA
+        mainPrivateKey: (生秘密鍵main)
+        transportPrivateKey:(生秘密鍵transport) 
+        remotePrivateKey: (生秘密鍵remote)
+        vrfPrivateKey: (生秘密鍵vrf)
+==========================
+
+### 旧サービスを停止
+$ cd ~/symbol_testnet
+$ symbol-bootstrap stop
+
+### 新サービスを起動
+$ cd ~/symbol_testnet_new
+$ symbol-bootstrap config -p testnet -a dual -c my-preset-testnet.yml
+$ symbol-bootstrap compose
+### 旧サービスのDBを使わずにゼロから同期
+### $ cp -ipr ~/symbol_testnet/target/databases target
+### $ cp -ipr ~/symbol_testnet/target/nodes/node/data/* target/nodes/node/data
+$ symbol-bootstrap start -d
+
+### 動作確認
+$ docker ps -a
+$ curl http://${node_url}:3000/node/info | jq
+$ curl http://${node_url}:3000/node/unlockedaccount | jq
+==========================
+  % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current
+                                 Dload  Upload   Total   Spent    Left  Speed
+100   423  100   423    0     0  13645      0 --:--:-- --:--:-- --:--:-- 13645
+{
+  "unlockedAccount": [
+    "FFA520585D3232C5A174A9E00F6F0DEFFFF1767F8E698DF7AF73712F39B8DABE",
+    "08171A4CF037B07CA6BD6872FD6FEA76FB75BB03D4E7C0F467CF6F0025B17542",
+    "7A230E73887462102682F7B30AF703D0344C9D1E091E61E428A15178278A8502",
+    "6966F52CF676C1FE585EDBF404189138C274B066944D08E103327E5401C22E9D",
+    "785F68BDA2494858E6880DF5580DA1C819763F6FAC84F84B5DC4A26377390B4E",
+    "1F7D92E2B5046C27EE3A4E2F8BD1C697FE8C1078CDA91E9E981CC5EC166C61B2"
+  ]
+}
+==========================
+
+$ curl http://${node_url}:3000/node/peers | jq
+$ curl http://${node_url}:3000/node/server | jq
+$ openssl x509 -text -noout -in target/nodes/node/cert/node.full.crt.pem
+==========================
+Certificate:
+    Data:
+        Version: 1 (0x0)
+        Serial Number:
+            30:45:c1:6e:6e:7d:07:d6:1d:77:f1:00:b7:1f:7a:7d:5b:8c:96
+        Signature Algorithm: ED25519
+        Issuer: CN = node-account
+        Validity
+            Not Before: Sep 19 10:57:03 2021 GMT
+            Not After : Sep 29 10:57:03 2022 GMT
+        Subject: CN = node
+        Subject Public Key Info:
+            Public Key Algorithm: ED25519
+                ED25519 Public-Key:
+                pub:
+                    8c:6e:67:77:ce:13:90:ea:29:1a:e9:96:d5:32:06:
+                    cb:7e:95:06:5e:5f:e3:ea:fd:e8:c6:a0:32:f7:6c:
+                    61:52
+    Signature Algorithm: ED25519
+         e4:e1:4f:0e:3b:5b:31:4a:ff:ad:e9:68:5f:f7:0e:5b:fa:2f:
+         5d:2b:ba:e0:f1:84:64:d8:ee:20:51:0e:22:2c:7f:5e:55:d6:
+         10:b3:e9:b9:15:96:99:81:14:fe:f3:b9:b5:44:1d:2f:d6:11:
+         60:01:c6:17:0e:f0:32:90:86:06
+==========================
+
+############
+### 終了 ###
+############
+
+
+=========================================================
+##################
+### 神の御言葉 ###
+##################
+
+https://tanuson.slack.com/archives/C01PV32NNQG/p1631793178322800?thread_ts=1631790151.313800&cid=C01PV32NNQG
+
+target の再構築前に
+①ｶｽﾀﾑﾌﾟﾘｾｯﾄ.yml
+②target/addresses.yml とそれを作った時のﾊﾟｽﾜｰﾄﾞ(それか その内容を復号したもの)
+③target/nodes/node/data/harvesters.dat (今は再同期で復元するけど念の為)
+④domain を使っていたらそれも何使ってたか憶えとき host に設定したﾔﾂ
+上記④つが　家財道具だ
+これさえ保存していれば何処で建て直しても復活出来る
+============================================
+
+
+しかるべき場所に
+main/transport/remote/vrf の秘密鍵を記述すれば
+同じ node が再生される
+
+
+============================================
+
+まぁだいたいは
+bootstrap を 1.0.8 以降に update した後に
+① stop
+② resetData
+③ config -p mainnet -a dual -c ｶｽﾀﾑﾌﾟﾘｾｯﾄ.yml --upgrade
+④ compose --upgrade
+⑤ run
+
+これで1日寝て待ちゃあ同期出来っし
+委任者も元通りだ
+
+
+privateKeySecurityMode: ENCRYPT
+nodes:
+    -
+        host: abcd
+        friendlyName: abcd
+        maxUnlockedAccounts: abcd
+        #transactionSelectionStrategy: oldest
+        #minFeeMultiplier: 10
+        beneficiaryAddress: abcd
+        mainPrivateKey: abcd
+        transportPrivateKey: abcd
+        remotePrivateKey: abcd
+        #votingPrivateKey:
+        vrfPrivateKey: abcd
+
+
+============================================
+
+
+
+target/addreses.yml を decrypt して秘密鍵を復号せんでも
+こっちを使えば　暗号化されたのをそのままｺﾋﾟﾍﾟで行ける
+今確認した
+
+privateKeySecurityMode: ENCRYPT
+nodes:
+    -
+        host: abcd
+        friendlyName: abcd
+        maxUnlockedAccounts: abcd
+        #transactionSelectionStrategy: oldest
+        #minFeeMultiplier: 10
+        beneficiaryAddress: abcd
+?
+        #votingPrivateKey:
+?
+        mainPrivateKey: >-
+            ENCRYPTED:abcd
+        vrfPrivateKey: >-
+            ENCRYPTED:abcd
+        remotePrivateKey: >-
+            ENCRYPTED:abcd
+        transportPrivateKey: >-
+            ENCRYPTED:abcd
+
