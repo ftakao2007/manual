@@ -304,7 +304,7 @@ $ tail -11 target/addresses.yml
 ==========================
 
 ### "startEpoch": 361 "endEpoch": 720 を確認
-$ curl -s http://${node_url}:3000/accounts/NCA4WIMJERZX36EDDJO4QBG6IW4BJFLP5QGL56Q | jq '.account.supplementalPublicKeys.voting'
+$ curl -s http://${node_url}:3000/accounts/${main_address} | jq '.account.supplementalPublicKeys.voting'
 ==========================
 {
   "publicKeys": [
