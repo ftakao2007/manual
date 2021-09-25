@@ -23,33 +23,6 @@ $ df -h /home
 /dev/mapper/centos-root   795G   85G  711G   11% /
 ==========================
 
-### ステータスの確認
-$ curl -s http://127.0.0.1:3000/node/unlockedaccount | jq
-==========================
-{
-  "unlockedAccount": [
-    "EA6AD787FD94DCAA773543E482E5393C9071540AFF4C4D08B808FF3BF24B7C19",
-    "0EC03EC9A6EF0E04F7E206731601907E35A719FB0EBE53DCAF5CDCA6262415D4"
-  ]
-}
-==========================
-
-### mainアカウントのDHP枚数の確認
-### ここの枚数が不足してるとyourdlt linkコマンドでコケる
-### 100000(0.1DHP)あればコケないと思うけど、定期的に実行することになるので多めに入れておくと安全
-### addresses.ymlのmainのaddressの値を設定
-$ main_address="NCA4WIMJERZX36EDDJO4QBG6IW4BJFLP5QGL56Q"
-$ curl -s http://127.0.0.1:3000/accounts/${main_address} | jq '.account.mosaics'
-==========================
-[
-  {
-    "id": "39E0C49FA322A459",
-    "amount": "900304"
-  }
-]
-==========================
-
-
 ### yourdltのダウンロード
 $ bootstrap="1.3.3"
 $ cd ~
@@ -76,7 +49,6 @@ $ home_dir="/home/ftakao2007"
 $ bootstrap="1.3.3"
 $ day=`date +'%Y%m%d'`
 $ node_url="dhealth.harvesting-sweet-potatoes.club"
-$ main_address="NCA4WIMJERZX36EDDJO4QBG6IW4BJFLP5QGL56Q"
 
 ### https-portalの停止
 $ cd ~/https-portal
@@ -92,17 +64,18 @@ $ cat my-preset-dhealth.yml
 ==========================
 nodes:
     -
-        friendlyName:  FUKUI-verup-test
-        host: stg.harvesting-sweet-potatoes.club
+        friendlyName:  FUKUI-dHealth
+        host: dhealth.harvesting-sweet-potatoes.club
         maxUnlockedAccounts: 50
         beneficiaryAddress: NBMUNLKLI3OY2QCJY3FMTIXVCOU2NEDUPNEOGHA
+        voting: false
 ==========================
 
 ### 停止
 $ yourdlt stop
 
 ### targetディレクトリバックアップ
-$ ~/bin/rsync.sh
+$ ~/bin/rsync_dhealth.sh
 
 ### yourdltのsymlink設置
 $ cd ~/bin
@@ -130,34 +103,26 @@ $ yourdlt config -p dhealth -a dual -c my-preset-dhealth.yml --upgrade
   |___/
 ? Enter the password used to encrypt and decrypt custom presets, addresses.yml, and preset.yml files. When providing a password, private keys will be encrypted. Keep this password in a secure place! ******
 **
-2021-09-24T09:21:21.715Z info     Password has been provided
-2021-09-24T09:21:22.084Z info     Upgrading configuration...
-2021-09-24T09:21:22.106Z info     Generating config from preset 'dhealth'
-2021-09-24T09:21:22.107Z info     Using assembly 'dual'
-2021-09-24T09:21:22.107Z info     Using custom preset file 'my-preset-dhealth.yml'
-2021-09-24T09:21:22.154Z info     Reusing Main Account NCA4WIMJERZX36EDDJO4QBG6IW4BJFLP5QGL56Q Public Ley 2F10F552C3B9D28C55B3134AA03BDE5CE17F8F8FFA066CF674E84D18BF886395 ...
-2021-09-24T09:21:22.169Z info     Reusing Transport Account NADVB2CVGUPBHOIPOD5N4RPWRLFA4A65LROGWDA Public Ley 2EDE15DD58F364ACE334FECD5E479BCFD03247BACC4BB52EF86F2B30BA323232 ...
-2021-09-24T09:21:22.188Z info     Reusing Remote Account NCZ3ENYZX6UFSTUOWOCNZM6CMHVAZ5ZXGNATFFA Public Ley EA6AD787FD94DCAA773543E482E5393C9071540AFF4C4D08B808FF3BF24B7C19 ...
-2021-09-24T09:21:22.199Z info     Reusing VRF Account NDQMFQSA2DKGBJQ52NBWTYORMZNJWZSI6DU6V5A Public Ley A2B1D99A2929AF2776A72EFD67B2D038017982F347B855191A1E2F1503C8DA96 ...
-2021-09-24T09:21:22.202Z info     Deleting folder target/nodes/dhealth-full-node/server-config
-2021-09-24T09:21:22.204Z info     Deleting folder target/nodes/dhealth-full-node/broker-config
-2021-09-24T09:21:22.205Z info     Deleting folder target/nodes/dhealth-full-node/seed
-2021-09-24T09:21:22.205Z info     Deleting folder target/gateways/rest-gateway
-2021-09-24T09:21:22.208Z info     Certificates for node dhealth-full-node have been previously generated. Reusing...
-2021-09-24T09:21:22.224Z info     Looking for the best node out of:
- - http://dual-01.dhealth.cloud:3000
- - http://dual-02.dhealth.cloud:3000
- - http://dual-03.dhealth.cloud:3000
- - http://api-01.dhealth.cloud:3000
-2021-09-24T09:21:22.694Z info     The current network finalization epoch is 360
-2021-09-24T09:21:22.699Z info     Generating dhealth-full-node server configuration
-2021-09-24T09:21:22.861Z info     Generating broker broker configuration
-2021-09-24T09:21:22.921Z warn
-2021-09-24T09:21:22.922Z warn     Voting key files are close to EXPIRATION or have EXPIRED!. Run the 'symbol-bootstrap updateVotingKeys' command!
-2021-09-24T09:21:22.922Z warn
-2021-09-24T09:21:22.932Z info     Upgrading genesis on upgrade!
-2021-09-24T09:21:22.933Z info     Deleting folder target/nemesis/seed
-2021-09-24T09:21:23.173Z info     Configuration generated.
+2021-09-25T09:37:28.389Z info     Password has been provided
+2021-09-25T09:37:28.720Z info     Upgrading configuration...
+2021-09-25T09:37:28.748Z info     Generating config from preset 'dhealth'
+2021-09-25T09:37:28.749Z info     Using assembly 'dual'
+2021-09-25T09:37:28.749Z info     Using custom preset file 'my-preset-dhealth.yml'
+2021-09-25T09:37:28.798Z info     Reusing Main Account NAZY7TUIKXL5L2FOKD76BS5LEM2XY5H5FVJCKOQ Public Ley 046AA99C98C6F4E8AC5D0D796E5F3636F4DAD88100A06B285D8843A612DC2A44 ...
+2021-09-25T09:37:28.804Z info     Reusing Transport Account NDYERP4FPA4YBBHYDVXEKRWID2RHMS2R4U23FBY Public Ley 4FDD2446881EB9B5AD101A735A598D75DAC60CCFF3E59C77106062258E3E1F3B ...
+2021-09-25T09:37:28.823Z info     Reusing Remote Account NA4RIQXQQWQS74RHEQVMY2BKMEJ4HZOF7DSKE3Y Public Ley 6CC01D7B837BADD3D1E5D3944E1B583201019F3CA48DB9BD5488CC5FF7B61B93 ...
+2021-09-25T09:37:28.836Z info     Reusing VRF Account NDPV6P2GGW7QBJO2JJ3ZBCSAIHM7IGW2B4L2TBY Public Ley CF587F204DA2B6E27EDFE5069F0726AE64D848E1A53EA8DACCCBD7D07E0C2C5A ...
+2021-09-25T09:37:28.890Z info     Deleting folder target/nodes/dhealth-full-node/server-config
+2021-09-25T09:37:28.892Z info     Deleting folder target/nodes/dhealth-full-node/broker-config
+2021-09-25T09:37:28.893Z info     Deleting folder target/nodes/dhealth-full-node/seed
+2021-09-25T09:37:28.894Z info     Deleting folder target/gateways/rest-gateway
+2021-09-25T09:37:28.895Z info     Certificates for node dhealth-full-node have been previously generated. Reusing...
+2021-09-25T09:37:28.896Z info     Generating dhealth-full-node server configuration
+2021-09-25T09:37:29.003Z info     Generating broker broker configuration
+2021-09-25T09:37:29.052Z info     Node dhealth-full-node is not voting.
+2021-09-25T09:37:29.058Z info     Upgrading genesis on upgrade!
+2021-09-25T09:37:29.058Z info     Deleting folder target/nemesis/seed
+2021-09-25T09:37:29.304Z info     Configuration generated.
 ==========================
 
 $ yourdlt compose --upgrade
@@ -170,97 +135,33 @@ $ yourdlt compose --upgrade
   |___/
 ? Enter the password used to encrypt and decrypt custom presets, addresses.yml, and preset.yml files. When providing a password, private keys will be encrypted. Keep this password in a secure place! ******
 **
-2021-09-24T09:21:53.442Z info     Password has been provided
-2021-09-24T09:21:53.464Z info     Deleting folder /home/ubuntu/symbol_dhealth/target/docker
-2021-09-24T09:21:53.479Z info     User for docker resolved: 1000:1000
-2021-09-24T09:21:53.479Z info     Creating docker-compose.yml from last used profile.
-2021-09-24T09:21:53.486Z info     The docker-compose.yml file created /home/ubuntu/symbol_dhealth/target/docker/docker-compose.yml
-==========================
-
-### voting keyのアップデート
-$ yourdlt updateVotingKeys
-==========================
-                                _  _  _
-  _   _   ___   _   _  _ __  __| || || |_
- | | | | / _ \ | | | || '__|/ _` || || __|
- | |_| || (_) || |_| || |  | (_| || || |_
-  \__, | \___/  \__,_||_|   \__,_||_| \__|
-  |___/
-2021-09-24T09:23:25.662Z info     Looking for the best node out of:
- - http://dual-01.dhealth.cloud:3000
- - http://dual-02.dhealth.cloud:3000
- - http://dual-03.dhealth.cloud:3000
- - http://api-01.dhealth.cloud:3000
-2021-09-24T09:23:26.164Z info     The current network finalization epoch is 360
-2021-09-24T09:23:26.196Z info     Creating Voting key file of 360 epochs for node dhealth-full-node. This could take a while!
-2021-09-24T09:23:26.197Z info     Voting file is created using docker and the default's catapult.tools.votingkey
-2021-09-24T09:23:26.197Z info     User for docker resolved: 1000:1000
-2021-09-24T09:23:26.198Z info     Running image using Exec: symbolplatform/symbol-server:gcc-10-1.0.2.0 /usr/catapult/bin/catapult.tools.votingkey --secret=HIDDEN_KEY --startEpoch=361 --endEpoch=720 --output=/votingKeys/private_key_tree2.dat
-2021-09-24T09:24:20.857Z warn
-2021-09-24T09:24:20.860Z warn     A new Voting File for the node dhealth-full-node has been generated!
-2021-09-24T09:24:20.861Z warn     Remember to send a Voting Key Link transaction from main NCA4WIMJERZX36EDDJO4QBG6IW4BJFLP5QGL56Q using the Voting Public Key: 7CEEEC99105DBFFDED7A50F9ACB08447DD5CB531BCE1F4D7D8C679C26C594B63 with startEpoch: 361 and endEpoch: 720
-2021-09-24T09:24:20.864Z warn     For linking, you can use 'symbol-bootstrap link' command, the symbol cli, or the symbol desktop wallet.
-2021-09-24T09:24:20.864Z warn
-2021-09-24T09:24:20.881Z warn     Bootstrap has created new voting file(s). Review the logs!
-2021-09-24T09:24:20.884Z warn
-==========================
-
-$ yourdlt link --useKnownRestGateways --maxFee 100000
-==========================
-■1回目
-                                _  _  _
-  _   _   ___   _   _  _ __  __| || || |_
- | | | | / _ \ | | | || '__|/ _` || || __|
- | |_| || (_) || |_| || |  | (_| || || |_
-  \__, | \___/  \__,_||_|   \__,_||_| \__|
-  |___/
-? Enter the password used to encrypt and decrypt custom presets, addresses.yml, and preset.yml files. When providing a password, private keys will be encrypted. Keep this password in a secure place! ******
-**
-2021-09-24T09:25:10.572Z info     Password has been provided
-2021-09-24T09:25:10.915Z info     Linking nodes
-2021-09-24T09:25:10.921Z info     Looking for the best node out of:
- - http://dual-01.dhealth.cloud:3000
- - http://dual-02.dhealth.cloud:3000
- - http://dual-03.dhealth.cloud:3000
- - http://api-01.dhealth.cloud:3000
-2021-09-24T09:25:11.413Z info     Connecting to node http://dual-01.dhealth.cloud:3000
-2021-09-24T09:25:13.431Z info     MaxFee is 0.1
-2021-09-24T09:25:14.005Z error    Node signing account NCA4WIMJERZX36EDDJO4QBG6IW4BJFLP5QGL56Q is not valid.
-
-Does your node signing address have any network coin? Send some tokens to NCA4WIMJERZX36EDDJO4QBG6IW4BJFLP5QGL56Q .
-※ mainにDHPが入ってなかったのでコケた
-
-
-■2回目 (1DHPをmainに送信して再実行)
-                                _  _  _
-  _   _   ___   _   _  _ __  __| || || |_
- | | | | / _ \ | | | || '__|/ _` || || __|
- | |_| || (_) || |_| || |  | (_| || || |_
-  \__, | \___/  \__,_||_|   \__,_||_| \__|
-  |___/
-? Enter the password used to encrypt and decrypt custom presets, addresses.yml, and preset.yml files. When providing a password, private keys will be encrypted. Keep this password in a secure place! ******
-**
-2021-09-24T09:28:49.712Z info     Password has been provided
-2021-09-24T09:28:50.068Z info     Linking nodes
-2021-09-24T09:28:50.070Z info     Looking for the best node out of:
- - http://dual-01.dhealth.cloud:3000
- - http://dual-02.dhealth.cloud:3000
- - http://dual-03.dhealth.cloud:3000
- - http://api-01.dhealth.cloud:3000
-2021-09-24T09:28:50.563Z info     Connecting to node http://dual-01.dhealth.cloud:3000
-2021-09-24T09:28:52.590Z info     MaxFee is 0.1
-2021-09-24T09:28:53.444Z info     Creating transactions for node: dhealth-full-node, ca/main account: NCA4WIMJERZX36EDDJO4QBG6IW4BJFLP5QGL56Q
-2021-09-24T09:28:53.445Z info     Creating Link Remote Transaction from Node dhealth-full-node to Remote public key EA6AD787FD94DCAA773543E482E5393C9071540AFF4C4D08B808FF3BF24B7C19.
-2021-09-24T09:28:53.446Z info     Creating Link VRF Transaction from Node dhealth-full-node to VRF public key A2B1D99A2929AF2776A72EFD67B2D038017982F347B855191A1E2F1503C8DA96.
-2021-09-24T09:28:53.447Z info     Creating Link Voting Transaction from Node dhealth-full-node to Voting public key C00025DA42E147B3139A9A18180421A502DAD71D8446FB4A5B5BF4CD45D51A97, start epoch 1, end epoch 360.
-2021-09-24T09:28:53.447Z info     Creating Link Voting Transaction from Node dhealth-full-node to Voting public key 7CEEEC99105DBFFDED7A50F9ACB08447DD5CB531BCE1F4D7D8C679C26C594B63, start epoch 361, end epoch 720.
-? Do you want to announce AggregateTransaction - Hash: D4AD75BF92B6AADE13CEB27773D9EE726779DADD431A80AC3777B01B1C665D10 - MaxFee 0.1? Yes
-2021-09-24T09:29:52.316Z info     Announcing AggregateTransaction - Hash: D4AD75BF92B6AADE13CEB27773D9EE726779DADD431A80AC3777B01B1C665D10 - MaxFee 0.1
-2021-09-24T09:30:05.186Z info     AggregateTransaction - Hash: D4AD75BF92B6AADE13CEB27773D9EE726779DADD431A80AC3777B01B1C665D10 - MaxFee 0.1 has been confirmed
+2021-09-25T09:38:04.255Z info     Password has been provided
+2021-09-25T09:38:04.284Z info     Deleting folder /home/ftakao2007/symbol_dhealth/target/docker
+2021-09-25T09:38:04.299Z info     User for docker resolved: 1000:1000
+2021-09-25T09:38:04.299Z info     Creating docker-compose.yml from last used profile.
+2021-09-25T09:38:04.306Z info     The docker-compose.yml file created /home/ftakao2007/symbol_dhealth/target/docker/docker-compose.yml
 ==========================
 
 ### 起動
 $ yourdlt run -d
+==========================
+                                _  _  _
+  _   _   ___   _   _  _ __  __| || || |_
+ | | | | / _ \ | | | || '__|/ _` || || __|
+ | |_| || (_) || |_| || |  | (_| || || |_
+  \__, | \___/  \__,_||_|   \__,_||_| \__|
+  |___/
+2021-09-25T09:38:29.033Z info     Spawn command: docker-compose -f target/docker/docker-compose.yml up --remove-orphans --detach
+Creating network "docker_default" with the default driver
+Creating db ...
+Creating db ... done
+Creating broker ...
+Creating rest-gateway ...
+Creating broker       ... done
+Creating dhealth-full-node ...
+Creating rest-gateway      ... done
+Creating dhealth-full-node ... done
+==========================
 
 ### 動作確認
 $ docker ps -a
@@ -272,55 +173,22 @@ $ yourdlt healthCheck
  | |_| || (_) || |_| || |  | (_| || || |_
   \__, | \___/  \__,_||_|   \__,_||_| \__|
   |___/
-2021-09-24T09:36:21.601Z info     Container db is running
-2021-09-24T09:36:21.603Z info     Container dhealth-full-node is running
-2021-09-24T09:36:21.608Z info     Container broker is running
-2021-09-24T09:36:21.608Z info     Container rest-gateway is running
-2021-09-24T09:36:21.613Z info     Container dhealth-full-node port 7900 -> 7900 is open
-2021-09-24T09:36:21.614Z info     Container broker port 7902 -> 7902 is open
-2021-09-24T09:36:21.615Z info     Container rest-gateway port 3000 -> 3000 is open
-2021-09-24T09:36:21.616Z info     Testing http://localhost:3000/node/health
-2021-09-24T09:36:21.662Z info     Rest http://localhost:3000/node/health is up and running...
-2021-09-24T09:36:21.665Z info     Network is running!
+2021-09-25T09:39:08.949Z info     Container db is running
+2021-09-25T09:39:08.950Z info     Container dhealth-full-node is running
+2021-09-25T09:39:08.956Z info     Container broker is running
+2021-09-25T09:39:08.956Z info     Container rest-gateway is running
+2021-09-25T09:39:08.958Z info     Container dhealth-full-node port 7900 -> 7900 is open
+2021-09-25T09:39:08.959Z info     Container broker port 7902 -> 7902 is open
+2021-09-25T09:39:08.959Z info     Container rest-gateway port 3000 -> 3000 is open
+2021-09-25T09:39:08.960Z info     Testing http://localhost:3000/node/health
+2021-09-25T09:39:09.040Z info     Rest http://localhost:3000/node/health is up and running...
+2021-09-25T09:39:09.041Z info     Network is running!
 ==========================
 
 $ curl http://${node_url}:3000/node/info | jq
 $ curl http://${node_url}:3000/node/unlockedaccount | jq
 $ curl http://${node_url}:3000/node/peers | jq
 $ curl http://${node_url}:3000/node/server | jq
-$ tail -11 target/addresses.yml
-==========================
-        voting:
-            -
-                publicKey: C00025DA42E147B3139A9A18180421A502DAD71D8446FB4A5B5BF4CD45D51A97
-                startEpoch: 1
-                endEpoch: 360
-                filename: private_key_tree1.dat
-            -
-                publicKey: 7CEEEC99105DBFFDED7A50F9ACB08447DD5CB531BCE1F4D7D8C679C26C594B63
-                startEpoch: 361
-                endEpoch: 720
-                filename: private_key_tree2.dat
-==========================
-
-### "startEpoch": 361 "endEpoch": 720 を確認
-$ curl -s http://${node_url}:3000/accounts/${main_address} | jq '.account.supplementalPublicKeys.voting'
-==========================
-{
-  "publicKeys": [
-    {
-      "publicKey": "C00025DA42E147B3139A9A18180421A502DAD71D8446FB4A5B5BF4CD45D51A97",
-      "startEpoch": 1,
-      "endEpoch": 360
-    },
-    {
-      "publicKey": "7CEEEC99105DBFFDED7A50F9ACB08447DD5CB531BCE1F4D7D8C679C26C594B63",
-      "startEpoch": 361,
-      "endEpoch": 720
-    }
-  ]
-}
-==========================
 
 ### https-portalの起動
 $ cd ~/https-portal
@@ -370,51 +238,3 @@ $ docker-compose up -d
 ==========================
 Creating https-portal ... done
 ==========================
-
-=========================================================
-############
-### 参考 ###
-############
-
-### バックアップスクリプト
-$ cat ~/bin/rsync.sh
-==========================
-#!/bin/sh
-network="mainnet"
-home="/home/ftakao2007"
-day=`date +'%Y%m%d'`
-
-ls -ld ${home}/symbol_${network}
-ls -ld ${home}/bak
-ls -ld ${home}/bak/exclude_data
-
-echo "=============="
-for i in `cat ${home}/bin/ignore.lst`
-do
-  ls -ld ${home}/symbol_${network}/$i
-  ls -lh ${home}/symbol_${network}/$i
-  echo "=============="
-done
-
-echo "OK? (y/n)" [n]
-read flag
-
-if [ ! "$flag" == "y" ]; then echo "end"; exit 1; fi
-
-rsync -avh --exclude-from=${home}/bin/ignore.lst ${home}/symbol_${network} ${home}/bak/exclude_data
-rsync -avh --delete ${home}/symbol_${network} ${home}/bak
-cp -pr ${home}/symbol_${network}/target/nodes/node/data/harvesters.dat ${home}/bak/exclude_data
-cp -ipr ${home}/symbol_${network}/target/nodes/node/data/harvesters.dat ${home}/bak/harvesters.dat_${day}
-
-#date
-#diff -rq ${home}/symbol_${network} ${home}/bak/symbol_${network}
-#date
-==========================
-
-$ cat ~/bin/ignore.lst
-==========================
-target/databases
-target/nodes/node/data
-target/nodes/node/logs
-==========================
-
