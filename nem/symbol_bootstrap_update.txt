@@ -1,9 +1,9 @@
 ##########################################
-### minFeeMultiplierの設定アップデート ###
+### nftdrive用の設定アップデート       ###
 ##########################################
 
 ■ 概要
-minFeeMultiplierの値を10から30に変更する手順です。
+同期が遅れないようにするための設定
 
 =========================================================
 ■ 事前準備
@@ -95,12 +95,15 @@ $ cat my-preset-mainnet.yml
 ==========================
 nodes:
     -
-        friendlyName: FUKUI-harvest-MAX50
+        friendlyName: FUKUI-harvest-MAX2
         host: harvesting-sweet-potatoes.club
-        maxUnlockedAccounts: 50
+        maxUnlockedAccounts: 2
         beneficiaryAddress: NBMKZIAR6TW6MJE4PCJMIYMD5CA6YZBTCB3QATA
         minFeeMultiplier: 30
         transactionSelectionStrategy: oldest
+        maxChainBytesPerSyncAttempt: 10MB
+        messageSynchronizationMaxResponseSize: 5MB
+        blockDisruptorMaxMemorySize: 1000MB
 ==========================
 
 ### 停止
