@@ -1,0 +1,131 @@
+#######################################
+### symbol ノード証明書アップデート ###
+#######################################
+
+■ 概要
+証明書をアップデートする手順です。
+
+=========================================================
+■ 事前準備
+
+### 証明書の期限確認
+$ cd symbol_mainnet
+$ openssl x509 -noout -dates -in target/nodes/node/cert/node.crt.pem
+==========================
+notBefore=Mar 19 13:58:14 2021 GMT
+notAfter=Mar 29 13:58:14 2022 GMT
+==========================
+
+### 事前同期
+network="mainnet"
+home="/home/ftakao2007"
+rsync -avh --delete ${home}/symbol_${network} ${home}/bak
+
+=========================================================
+■ 作業内容
+### screenの実行
+$ screen
+
+### パラメータ設定
+$ day=`date +'%Y%m%d'`
+$ node_url="harvesting-sweet-potatoes.com"
+
+### https-portalの停止
+$ cd ~/https-portal
+$ docker-compose stop
+$ docker-compose down
+
+### 作業ディレクトリに移動
+$ cd ~/symbol_mainnet
+
+### 停止
+$ symbol-bootstrap stop
+
+### targetディレクトリバックアップ
+$ ~/bin/rsync.sh
+
+### update実行
+$ symbol-bootstrap renewCertificates --force
+==========================
+                         _             _         _                    _         _
+  ___  _   _  _ __ ___  | |__    ___  | |       | |__    ___    ___  | |_  ___ | |_  _ __  __ _  _ __
+ / __|| | | || '_ ` _ \ | '_ \  / _ \ | | _____ | '_ \  / _ \  / _ \ | __|/ __|| __|| '__|/ _` || '_ \
+ \__ \| |_| || | | | | || |_) || (_) || ||_____|| |_) || (_) || (_) || |_ \__ \| |_ | |  | (_| || |_) |
+ |___/ \__, ||_| |_| |_||_.__/  \___/ |_|       |_.__/  \___/  \___/  \__||___/ \__||_|   \__,_|| .__/
+       |___/                                                                                    |_|
+? Enter the password used to encrypt and decrypt custom presets, addresses.yml, and preset.yml files. When providing a passwo
+rd, private keys will be encrypted. Keep this password in a secure place! ********
+2022-01-24T01:41:41.059Z info     Password has been provided
+2022-01-24T01:41:41.325Z info     Generating config from preset 'mainnet'
+2022-01-24T01:41:41.326Z info     Using assembly 'dual'
+2022-01-24T01:41:41.619Z info     User for docker resolved: 1000:1000
+2022-01-24T01:41:41.619Z info     Running image using Exec: symbolplatform/symbol-server:gcc-10-1.0.3.1 openssl x509 -enddate -noout -in node.crt.pem -checkend 2592000
+2022-01-24T01:41:44.649Z warn     The node.crt.pem certificate for node node will expire on Mar 29 13:58:14 2022 GMT, renewing anyway...
+2022-01-24T01:41:44.661Z info     Running image using Exec: symbolplatform/symbol-server:gcc-10-1.0.3.1 bash createNodeCertificates.sh
+2022-01-24T01:41:45.174Z info     Certificate for node node renewed.
+2022-01-24T01:41:45.176Z warn
+2022-01-24T01:41:45.177Z warn     Bootstrap has created new SSL certificates. Review the logs!
+2022-01-24T01:41:45.177Z warn
+==========================
+
+### 証明書の期限確認
+$ openssl x509 -noout -dates -in target/nodes/node/cert/node.crt.pem
+==========================
+notBefore=Jan 24 01:41:45 2022 GMT
+notAfter=Feb  3 01:41:45 2023 GMT
+==========================
+
+### 起動
+$ symbol-bootstrap start -d
+
+### 動作確認
+$ docker ps -a
+$ symbol-bootstrap healthCheck
+==========================
+                         _             _         _                    _         _
+  ___  _   _  _ __ ___  | |__    ___  | |       | |__    ___    ___  | |_  ___ | |_  _ __  __ _  _ __
+ / __|| | | || '_ ` _ \ | '_ \  / _ \ | | _____ | '_ \  / _ \  / _ \ | __|/ __|| __|| '__|/ _` || '_ \
+ \__ \| |_| || | | | | || |_) || (_) || ||_____|| |_) || (_) || (_) || |_ \__ \| |_ | |  | (_| || |_) |
+ |___/ \__, ||_| |_| |_||_.__/  \___/ |_|       |_.__/  \___/  \___/  \__||___/ \__||_|   \__,_|| .__/
+       |___/                                                                                    |_|
+2022-01-24T01:43:35.411Z info     User for docker resolved: 1000:1000
+2022-01-24T01:43:35.412Z info     Running image using Exec: symbolplatform/symbol-server:gcc-10-1.0.3.1 openssl x509 -enddate -noout -in node.crt.pem -checkend 2592000
+2022-01-24T01:43:35.912Z info     The node.crt.pem certificate for node node will expire on Feb  3 01:41:45 2023 GMT. No need to renew it yet.
+2022-01-24T01:43:35.967Z info     Container db is running
+2022-01-24T01:43:35.968Z info     Container node is running
+2022-01-24T01:43:35.972Z info     Container broker is running
+2022-01-24T01:43:35.973Z info     Container rest-gateway is running
+2022-01-24T01:43:35.975Z info     Container rest-gateway port 3000 -> 3000 is open
+2022-01-24T01:43:35.976Z info     Testing http://localhost:3000/node/health
+2022-01-24T01:43:35.983Z info     Container node port 7900 -> 7900 is open
+2022-01-24T01:43:36.038Z info     Rest http://localhost:3000/node/health is up and running...
+2022-01-24T01:43:36.039Z info     Network is running!
+==========================
+
+$ symbol-bootstrap verify
+==========================
+                         _             _         _                    _         _
+  ___  _   _  _ __ ___  | |__    ___  | |       | |__    ___    ___  | |_  ___ | |_  _ __  __ _  _ __
+ / __|| | | || '_ ` _ \ | '_ \  / _ \ | | _____ | '_ \  / _ \  / _ \ | __|/ __|| __|| '__|/ _` || '_ \
+ \__ \| |_| || | | | | || |_) || (_) || ||_____|| |_) || (_) || (_) || |_ \__ \| |_ | |  | (_| || |_) |
+ |___/ \__, ||_| |_| |_||_.__/  \___/ |_|       |_.__/  \___/  \___/  \__||___/ \__||_|   \__,_|| .__/
+       |___/                                                                                    |_|
+2022-01-24T01:44:24.663Z info     OS: Linux - 3.10.0-1160.15.2.el7.x86_64 - linux
+2022-01-24T01:44:24.664Z info     NodeVersion - OK! - 14.16.0
+2022-01-24T01:44:24.665Z info     Docker Version - OK! - 20.10.5
+2022-01-24T01:44:24.665Z info     Docker Compose Version - OK! - 1.28.5
+2022-01-24T01:44:24.665Z info     Docker Run Test - OK! - Command 'docker run hello-world' executed!
+2022-01-24T01:44:24.665Z info     Sudo User Test - OK! - Your are not the sudo user!
+==========================
+$ curl http://${node_url}:3000/node/info | jq
+$ curl http://${node_url}:3000/node/unlockedaccount | jq
+$ curl http://${node_url}:3000/node/peers | jq
+$ curl http://${node_url}:3000/node/server | jq
+
+### https-portalの起動
+$ cd ~/https-portal
+$ docker-compose up -d
+
+############
+### 終了 ###
+############
