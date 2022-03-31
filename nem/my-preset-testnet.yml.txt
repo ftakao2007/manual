@@ -1,0 +1,13 @@
+nodes:
+    -
+        friendlyName: FUKUI-TESTNET(v1.0.3.1)
+        host: stg.harvesting-sweet-potatoes.club
+        maxUnlockedAccounts: 20
+        beneficiaryAddress: TBHQGWBYM2CIIS7KMVDLNXXVQKH3YAYPJXR36TA
+        minFeeMultiplier: 30
+        transactionSelectionStrategy: oldest
+        #maxChainBytesPerSyncAttempt: 10MB
+        #maxChainBytesPerSyncAttempt: 5MB
+        maxChainBytesPerSyncAttempt: 50MB
+        messageSynchronizationMaxResponseSize: 5MB
+        blockDisruptorMaxMemorySize: 1000MB
